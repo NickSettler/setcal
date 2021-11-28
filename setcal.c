@@ -1,0 +1,578 @@
+#include <stdio.h>
+#include <string.h>
+#include <malloc.h>
+#define N 3
+
+/**
+ * Definition for bool
+ */
+typedef enum {
+    false,
+    true
+} bool;
+
+/**
+ * Definition for singly-linked list.
+ */
+typedef struct {
+    char **words;
+    int count;
+} univerzum;
+
+/**
+ * Definition for singly-linked list.
+ */
+typedef struct set {
+    int size;
+    int capacity;
+    char **elements;
+} set;
+
+/**
+ * Operation data structure
+ */
+typedef struct {
+    char *name;
+    void *pointer;
+} operation;
+
+/**
+ * Definition for relations
+ */
+typedef struct {
+    char ***pairs;
+    int count_pairs;
+} relations;
+
+/**
+ * Enumerates command types
+ */
+typedef enum {
+    U = 'U',
+    S = 'S',
+    R = 'R',
+    C = 'C',
+} commands;
+
+/**
+ * Command data structure
+ */
+typedef struct {
+    commands type;
+    char *operation;
+    char *param1;
+    char *param2;
+} command_t;
+
+/**
+ * Prototypes of functions
+ */
+void rel_table(int table[N][N], relations *rel_arr, univerzum *univerzum);
+int find_operation(operation *operations, int size, char *name);
+command_t *parse_commands(char **commands, int size);
+void print_commands(command_t *commands, int size);
+set *set_init(int capacity);
+void set_add(set *s, char *e);
+void set_print(set *s);
+bool set_is_empty(set *s);
+set *set_union(set *s1, set *s2);
+set *set_intersection(set *s1, set *s2);
+set *set_difference(set *s1, set *s2);
+bool set_is_subset(set *s1, set *s2);
+bool set_is_equal(set *s1, set *s2);
+int reflexive(relations *rel_arr, univerzum *univerzum);
+int symmetric(relations *rel_arr, univerzum *univerzum);
+int antisymmetric(relations *rel_arr, univerzum *univerzum);
+int transitive(relations *rel_arr, univerzum *univerzum);
+int function(relations *rel_arr, univerzum *univerzum);
+
+set **pole_set_init(set **sets);
+void array_set_add(set **sets, set *s, int *set_amount);
+
+
+/**
+ * Main function.
+ * @param argc The number of arguments.
+ * @param argv The arguments.
+ * @return 0 if the program ran successfully, 1 otherwise.
+ */
+int main(int argc, char *argv[]) {
+    FILE *file = fopen("mnoziny.txt", "r");
+    if (file == NULL) {
+        fprintf(stderr, "Error during opening the file!\n");
+        return 0;
+    }
+    char row[101];
+    char *istr;
+    univerzum *univerzum;
+    univerzum = set_init(1);
+    set **sets = NULL;
+    int set_amount = 0;
+    while (fgets(row, 101, file)){
+        istr = strtok(row, " \n");
+        if (strcmp(istr,"U") == 0){
+            istr = strtok(NULL, " \n");
+            while (istr != NULL){
+                set_add(univerzum, istr);
+                istr = strtok(NULL, " \n");
+            }
+        } else if (strcmp(istr,"S") == 0){
+            set *s;
+            s = set_init(1);
+            istr = strtok(NULL, " \n");
+            while(istr != NULL){
+                set_add(s, istr);
+                istr = strtok(NULL, " \n");
+            }
+            pole_set_init(sets);
+            //arrray_add_set(sets, s, &set_amount);
+        }
+    }
+
+    for (int i = 0; i < set_amount; i++) {
+        for (int j = 0; j < sets[i]->size; j++) {
+            printf("%s ", sets[i]->elements[j]);
+        }
+        printf("\n");
+    }
+
+    fclose(file);
+    return 0;
+}
+
+
+
+/**
+ * table of 0 and 1 for relations
+ */
+void rel_table(int table[N][N], relations *rel_arr, univerzum *univerzum){
+    for (int i = 0; i < rel_arr->count_pairs; i++){
+        for (int j = 0; j < univerzum->count; j++){
+            if (strcmp(rel_arr->pairs[i][0], univerzum->words[j]) == 0){
+                for (int k = 0; k < univerzum->count; k++){
+                    if (strcmp(rel_arr->pairs[i][1], univerzum->words[k]) == 0){
+                        table[j][k] = 1;
+                    }
+                }
+            }
+        }
+    }
+    for (int i = 0; i < univerzum->count; i++){
+        for (int j = 0; j < univerzum->count; j++){
+            printf("%d ",table[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+/**
+ * Finds operation by name
+ * @param operations Operations array
+ * @param size Operations array size
+ * @param name Operation name
+ * @return Operation index or -1 if not found
+ */
+int find_operation(operation *operations, int size, char *name) {
+    for (int i = 0; i < size; i++) {
+        if (strcmp(operations[i].name, name) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+/**
+ * Parses commands array.
+ * @param commands Commands array
+ * @param size Commands array size
+ * @return Parsed commands array
+ */
+command_t *parse_commands(char **commands, int size) {
+    command_t *result = malloc(sizeof(command_t) * size);
+    for (int i = 0; i < size; i++) {
+        char *command = commands[i];
+        char *type = command;
+        char *operation = strchr(command, ' ');
+        char *param1 = strchr(operation + 1, ' ');
+        char *param2 = strchr(param1 + 1, ' ');
+        result[i].type = type[0];
+        result[i].operation = operation + 1;
+        result[i].param1 = param1 + 1;
+        result[i].param2 = param2 + 1;
+    }
+    return result;
+}
+
+/**
+ * Prints commands array.
+ * @param commands Commands array
+ * @param size Commands array size
+ */
+void print_commands(command_t *commands, int size) {
+    for (int i = 0; i < size; i++) {
+        printf("%c %s %s %s\n", commands[i].type, commands[i].operation,
+               commands[i].param1, commands[i].param2);
+    }
+}
+
+/**
+ * Creates a new set.
+ * @param capacity The initial capacity of the set.
+ * @return The new set.
+ */
+set *set_init(int capacity) {
+    set *s = malloc(sizeof(set));
+    s->size = 0;
+    s->capacity = capacity;
+    s->elements = malloc(sizeof(char *) * capacity);
+    return s;
+}
+
+/**
+ * Adds an element to the set.
+ * @param s The set.
+ * @param e The element to add.
+ */
+void set_add(set *s, char *e) {
+    if (s->size == s->capacity) {
+        s->capacity *= 2;
+        s->elements = realloc(s->elements, sizeof(char *) * s->capacity);
+    }
+    s->elements[s->size] = e;
+    s->size++;
+}
+
+/**
+ * Prints the set.
+ * @param s The set.
+ */
+void set_print(set *s) {
+    for (int i = 0; i < s->size; i++) {
+        printf("%s\n", s->elements[i]);
+    }
+}
+
+/**
+ * Checks if the set is empty.
+ * @param s The set.
+ * @return true if the set is empty, false otherwise.
+ */
+bool set_is_empty(set *s) {
+    if (s->size == 0) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Union of two sets.
+ * @param s1 The first set.
+ * @param s2 The second set.
+ * @return The union of the two sets.
+ */
+set *set_union(set *s1, set *s2) {
+    set *s = set_init(s1->capacity + s2->capacity);
+    for (int i = 0; i < s1->size; i++) {
+        set_add(s, s1->elements[i]);
+    }
+    for (int i = 0; i < s2->size; i++) {
+        bool is_in_set = false;
+        for (int j = 0; j < s->size; j++) {
+            if (strcmp(s2->elements[i], s->elements[j]) == 0) {
+                is_in_set = true;
+            }
+        }
+        if (!is_in_set) {
+            set_add(s, s2->elements[i]);
+        }
+    }
+    return s;
+}
+
+/**
+ * Intersection of two sets.
+ * @param s1 The first set.
+ * @param s2 The second set.
+ * @return The intersection of the two sets.
+ */
+set *set_intersection(set *s1, set *s2) {
+    set *s = set_init(s1->capacity + s2->capacity);
+    for (int i = 0; i < s1->size; i++) {
+        for (int j = 0; j < s2->size; j++) {
+            if (strcmp(s1->elements[i], s2->elements[j]) == 0) {
+                set_add(s, s1->elements[i]);
+            }
+        }
+    }
+    return s;
+}
+
+/**
+ * Difference of two sets.
+ * @param s1 The first set.
+ * @param s2 The second set.
+ * @return The difference of the two sets.
+ */
+set *set_difference(set *s1, set *s2) {
+    set *s = set_init(s1->capacity + s2->capacity);
+    for (int i = 0; i < s1->size; i++) {
+        bool is_in_set = false;
+        for (int j = 0; j < s2->size; j++) {
+            if (strcmp(s1->elements[i], s2->elements[j]) == 0) {
+                is_in_set = true;
+            }
+        }
+        if (!is_in_set) {
+            set_add(s, s1->elements[i]);
+        }
+    }
+    return s;
+}
+
+/**
+ * Checks if the first set is a subset of the second set.
+ * @param s1 The first set.
+ * @param s2 The second set.
+ * @return true if the first set is a subset of the second set, false otherwise.
+ */
+bool set_is_subset(set *s1, set *s2) {
+    for (int i = 0; i < s1->size; i++) {
+        bool is_in_set = false;
+        for (int j = 0; j < s2->size; j++) {
+            if (strcmp(s1->elements[i], s2->elements[j]) == 0) {
+                is_in_set = true;
+            }
+        }
+        if (!is_in_set) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * Checks if the first set is equal to the second set.
+ * @param s1 The first set.
+ * @param s2 The second set.
+ * @return true if the first set is equal to the second set, false otherwise.
+ */
+bool set_is_equal(set *s1, set *s2) {
+    if (s1->size != s2->size) {
+        return false;
+    }
+    for (int i = 0; i < s1->size; i++) {
+        bool is_in_set = false;
+        for (int j = 0; j < s2->size; j++) {
+            if (strcmp(s1->elements[i], s2->elements[j]) == 0) {
+                is_in_set = true;
+            }
+        }
+        if (!is_in_set) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * Checks if relation is reflexive
+ */
+int reflexive(relations *rel_arr, univerzum *univerzum){
+    int table[N][N];
+    for (int i = 0; i < N; i++){
+        for (int j = 0; j < N; j++){
+            table[i][j] = 0;
+        }
+    }
+    rel_table(table, rel_arr, univerzum);
+    for (int i = 0; i < univerzum->count; i++){
+        if (table[i][i] == 0){
+            printf("false\n");
+            return 0;
+        }
+    }
+    printf("true\n");
+    return 0;
+}
+
+/**
+ * Checks if relation is symmetric
+ */
+int symmetric(relations *rel_arr, univerzum *univerzum){
+    int table[N][N];
+    for (int i = 0; i < N; i++){
+        for (int j = 0; j < N; j++){
+            table[i][j] = 0;
+        }
+    }
+    rel_table(table, rel_arr, univerzum);
+    for (int i = 0; i < univerzum->count; i++){
+        for (int j = 0; j < univerzum->count; j++){
+            if (table[i][j] == 1 && table[j][i] == 0){
+                printf("false\n");
+                return 0;
+            }
+        }
+    }
+    printf("true\n");
+    return 0;
+}
+
+/**
+ * Checks if relation is antisymmetric
+ */
+int antisymmetric(relations *rel_arr, univerzum *univerzum){
+    int table[N][N];
+    for (int i = 0; i < N; i++){
+        for (int j = 0; j < N; j++){
+            table[i][j] = 0;
+        }
+    }
+    rel_table(table, rel_arr, univerzum);
+    for (int i = 0; i < univerzum->count; i++){
+        for (int j = 0; j < univerzum->count; j++){
+            if (table[i][j] == 1 && table[j][i] == 1 && i!=j){
+                printf("false\n");
+                return 0;
+            }
+        }
+    }
+    printf("true\n");
+    return 0;
+}
+
+/**
+ * Checks if relation is transitive
+ */
+int transitive(relations *rel_arr, univerzum *univerzum){
+    int table[N][N];
+    for (int i = 0; i < N; i++){
+        for (int j = 0; j < N; j++){
+            table[i][j] = 0;
+        }
+    }
+    rel_table(table, rel_arr, univerzum);
+    for (int i = 0; i < univerzum->count; i++){
+        for (int j = 0; j < univerzum->count; j++){
+            for (int k = 0; k < univerzum->count; k++){
+                if (table[i][j] == 1 && table[j][k] == 1 && table[i][k] == 0){
+                    printf("false\n");
+                    return 0;
+                }
+            }
+        }
+    }
+    printf("true\n");
+    return 0;
+}
+
+/**
+ * Checks if relation is function
+ */
+int function(relations *rel_arr, univerzum *univerzum){
+    int table[N][N];
+    for (int i = 0; i < N; i++){
+        for (int j = 0; j < N; j++){
+            table[i][j] = 0;
+        }
+    }
+    rel_table(table, rel_arr, univerzum);
+    for (int i = 0; i < univerzum->count; i++){
+        int pocet_relaci = 0;
+        for (int j = 0; j < univerzum->count; j++){
+            if (table[i][j] == 1){
+                pocet_relaci++;
+            }
+            if (pocet_relaci == 2){
+                printf("false\n");
+                return 0;
+            }
+        }
+    }
+    printf("true\n");
+    return 0;
+}
+
+
+set **pole_set_init(set **sets){
+    sets = malloc(sizeof(set*));
+    if (sets == NULL){
+        fprintf(stderr, "Malloc se nepodaril!");
+        return sets;
+    }
+    return sets;
+}
+
+void array_set_add(set **sets, set *s, int *set_amount){
+    *set_amount ++;
+    set **tmp = realloc(sets, sizeof(set*) * *set_amount);
+    if (tmp == NULL){
+        fprintf(stderr, "Realloc se nepovedl!");
+    }
+    sets = tmp;
+    sets[*set_amount - 1] = s;
+}
+
+
+/** muj main, zatim je blby, ale umi spocitat univerzu
+ *
+ int main (int argc, char *argv[]){
+    FILE *fp;
+    if ((fp = fopen(argv[1], "r")) == NULL){
+        printf("Nepodarilo se otevrit soubor!\n");
+        return 0;
+    }
+    char radek[101];
+    char *istr;
+    set univerzum;
+    univerzum.pocet = 0;
+    univerzum.prvky = NULL;
+    mnozina_t *mnoziny;
+    mnoziny = NULL;
+    int pocet_mnozin = 0;
+    while (fgets(radek, 101, fp)){
+        istr = strtok(radek, " \n");
+        if (strcmp(istr,"U") == 0){
+            istr = strtok(NULL, " \n");
+            while (istr != NULL){
+                set_add(&univerzum, istr);
+                istr = strtok(NULL, " \n");
+            }
+        }
+        else if (strcmp(istr,"S") == 0){
+            mnozina_t mnozina;
+            mnozina.prvky = NULL;
+            mnozina.pocet = 0;
+            istr = strtok(NULL, " \n");
+            while(istr != NULL){
+                mnozina_add_prvek(&mnozina, istr);
+                istr = strtok(NULL, " \n");
+            }
+            pole_add_mnozina(mnoziny, mnozina, &pocet_mnozin);
+        }
+    }
+    for (int i = 0; i < univerzum.pocet; i++){
+        printf("%s\n",univerzum.prvky[i]);
+    }
+    //printf("\n%s\n", mnoziny[0].prvky[1]);
+    //for (int i = 0; i < pocet_mnozin; i++){
+    //    for (int j = 0; j < mnoziny[i].pocet; j++){
+    //        printf("%s ", mnoziny[i].prvky[j]);
+    //    }
+    //    printf("\n");
+    //}
+    printf("dazhe syuda doshel\n");
+    for (int i = 0; i < univerzum.pocet; i++){
+        free(univerzum.prvky[i]);
+    }
+    //for (int i = 0; i < pocet_mnozin;  i++){
+    //    for (int j = 0; j < mnoziny[i].pocet; j++){
+    //        free(mnoziny[i].prvky[j]);
+    //    }
+    //}
+    free(univerzum.prvky);
+    //free(mnoziny);
+    fclose(fp);
+    return 0;
+}
+*/
