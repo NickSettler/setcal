@@ -26,7 +26,25 @@ typedef struct set {
     int size;
     int capacity;
     char **elements;
+    int row;
 } set;
+
+/**
+ * Definition for items in set array.
+ */
+ typedef struct item t_item;
+ struct item{
+     set s;
+     t_item *next;
+ };
+
+/**
+* Definition for set array.
+*/
+typedef struct{
+    t_item *head;
+    t_item *tail;
+}t_list;
 
 /**
  * Operation data structure
@@ -67,27 +85,28 @@ typedef struct {
 /**
  * Prototypes of functions
  */
-void rel_table(int table[N][N], relations *rel_arr, univerzum *univerzum);
+void rel_table(int **table, relations *rel_arr, univerzum *univerzum);
 int find_operation(operation *operations, int size, char *name);
 command_t *parse_commands(char **commands, int size);
 void print_commands(command_t *commands, int size);
 set *set_init(int capacity);
 void set_add(set *s, char *e);
+void set_add_row(set *s, int row);
 void set_print(set *s);
+void list_init(t_list *list);
+void insert_first(t_list *list, set s);
+void write_list(const t_list *list);
 bool set_is_empty(set *s);
 set *set_union(set *s1, set *s2);
 set *set_intersection(set *s1, set *s2);
 set *set_difference(set *s1, set *s2);
 bool set_is_subset(set *s1, set *s2);
 bool set_is_equal(set *s1, set *s2);
-int reflexive(relations *rel_arr, univerzum *univerzum);
-int symmetric(relations *rel_arr, univerzum *univerzum);
-int antisymmetric(relations *rel_arr, univerzum *univerzum);
-int transitive(relations *rel_arr, univerzum *univerzum);
-int function(relations *rel_arr, univerzum *univerzum);
-
-set **pole_set_init(set **sets);
-void array_set_add(set **sets, set *s, int *set_amount);
+bool reflexive(relations *rel_arr, univerzum *univerzum);
+bool symmetric(relations *rel_arr, univerzum *univerzum);
+bool antisymmetric(relations *rel_arr, univerzum *univerzum);
+bool transitive(relations *rel_arr, univerzum *univerzum);
+bool function(relations *rel_arr, univerzum *univerzum);
 
 
 /**
@@ -97,10 +116,10 @@ void array_set_add(set **sets, set *s, int *set_amount);
  * @return 0 if the program ran successfully, 1 otherwise.
  */
 int main(int argc, char *argv[]) {
-    FILE *file = fopen("mnoziny.txt", "r");
+    FILE *file = fopen(argv[1], "r");
     if (file == NULL) {
         fprintf(stderr, "Error during opening the file!\n");
-        return 0;
+        return 1;
     }
     char row[101];
     char *istr;
@@ -124,8 +143,6 @@ int main(int argc, char *argv[]) {
                 set_add(s, istr);
                 istr = strtok(NULL, " \n");
             }
-            pole_set_init(sets);
-            //arrray_add_set(sets, s, &set_amount);
         }
     }
 
@@ -141,11 +158,20 @@ int main(int argc, char *argv[]) {
 }
 
 
+/**
+ * function for file opening
+ */
+
 
 /**
  * table of 0 and 1 for relations
  */
-void rel_table(int table[N][N], relations *rel_arr, univerzum *univerzum){
+void  rel_table(int **table, relations *rel_arr, univerzum *univerzum){
+    for (int i = 0; i < univerzum->count; i++){
+        for (int j = 0; j < univerzum->count; j++){
+            table[i][j] = 0;
+        }
+    }
     for (int i = 0; i < rel_arr->count_pairs; i++){
         for (int j = 0; j < univerzum->count; j++){
             if (strcmp(rel_arr->pairs[i][0], univerzum->words[j]) == 0){
@@ -243,12 +269,57 @@ void set_add(set *s, char *e) {
 }
 
 /**
+ * Adds a row number to the set.
+ * @param s The set.
+ * @param e The element to add.
+ */
+void set_add_row(set *s, int row){
+    s->row = row;
+}
+
+/**
  * Prints the set.
  * @param s The set.
  */
 void set_print(set *s) {
     for (int i = 0; i < s->size; i++) {
         printf("%s\n", s->elements[i]);
+    }
+}
+
+/**
+ * Creates list of sets
+ * @param list The list of sets.
+ */
+void list_init(t_list *list){
+    list -> head = NULL;
+    list -> tail = NULL;
+}
+
+/**
+ * Adds set to a first position of list of sets
+ * @param list The list of sets.
+ * @param s The set to add.
+ */
+void insert_first(t_list *list, set s){
+    t_item *new_item;
+    if ((new_item = malloc(sizeof(t_item))) == NULL){
+        fprintf(stderr, "Error during malloc!\n");
+        return;
+    }
+    new_item->s = s;
+    new_item->next = list->head;
+    list->head = new_item;
+}
+
+/**
+ * Writes elements of list
+ * @param list The list of sets.
+ * @param s The set to add.
+ */
+void write_list(const t_list *list){
+    for (t_item *tmp = list->head; tmp != NULL; tmp = tmp->next){
+        printf("%d %d",tmp->s.size, tmp->s.capacity);
     }
 }
 
@@ -375,107 +446,89 @@ bool set_is_equal(set *s1, set *s2) {
 }
 
 /**
- * Checks if relation is reflexive
+ * Checks if the relation is reflexive.
+ * @param rel_arr The array of relation pairs.
+ * @param univerzum The univerzum.
+ * @return true if the relation is reflexive, false otherwise.
  */
-int reflexive(relations *rel_arr, univerzum *univerzum){
-    int table[N][N];
-    for (int i = 0; i < N; i++){
-        for (int j = 0; j < N; j++){
-            table[i][j] = 0;
-        }
-    }
+bool reflexive(relations *rel_arr, univerzum *univerzum){
+    int table[univerzum->count][univerzum->count];
     rel_table(table, rel_arr, univerzum);
     for (int i = 0; i < univerzum->count; i++){
         if (table[i][i] == 0){
-            printf("false\n");
-            return 0;
+            return false;
         }
     }
-    printf("true\n");
-    return 0;
+    return true;
 }
 
 /**
- * Checks if relation is symmetric
+ * Checks if the relation is symmetric.
+ * @param rel_arr The array of relation pairs.
+ * @param univerzum The univerzum.
+ * @return true if the relation is symmetric, false otherwise.
  */
-int symmetric(relations *rel_arr, univerzum *univerzum){
-    int table[N][N];
-    for (int i = 0; i < N; i++){
-        for (int j = 0; j < N; j++){
-            table[i][j] = 0;
-        }
-    }
+bool symmetric(relations *rel_arr, univerzum *univerzum){
+    int table[univerzum->count][univerzum->count];
     rel_table(table, rel_arr, univerzum);
     for (int i = 0; i < univerzum->count; i++){
         for (int j = 0; j < univerzum->count; j++){
             if (table[i][j] == 1 && table[j][i] == 0){
-                printf("false\n");
-                return 0;
+                return false;
             }
         }
     }
-    printf("true\n");
-    return 0;
+    return true;
 }
 
 /**
- * Checks if relation is antisymmetric
+ * Checks if the relation is antisymmetric.
+ * @param rel_arr The array of relation pairs.
+ * @param univerzum The univerzum.
+ * @return true if the relation is antisymmetric, false otherwise.
  */
-int antisymmetric(relations *rel_arr, univerzum *univerzum){
-    int table[N][N];
-    for (int i = 0; i < N; i++){
-        for (int j = 0; j < N; j++){
-            table[i][j] = 0;
-        }
-    }
+bool antisymmetric(relations *rel_arr, univerzum *univerzum){
+    int table[univerzum->count][univerzum->count];
     rel_table(table, rel_arr, univerzum);
     for (int i = 0; i < univerzum->count; i++){
         for (int j = 0; j < univerzum->count; j++){
             if (table[i][j] == 1 && table[j][i] == 1 && i!=j){
-                printf("false\n");
-                return 0;
+                return false;
             }
         }
     }
-    printf("true\n");
-    return 0;
+    return true;
 }
 
 /**
- * Checks if relation is transitive
+ * Checks if the relation is transitive.
+ * @param rel_arr The array of relation pairs.
+ * @param univerzum The univerzum.
+ * @return true if the relation is transitive, false otherwise.
  */
-int transitive(relations *rel_arr, univerzum *univerzum){
-    int table[N][N];
-    for (int i = 0; i < N; i++){
-        for (int j = 0; j < N; j++){
-            table[i][j] = 0;
-        }
-    }
+bool transitive(relations *rel_arr, univerzum *univerzum){
+    int table[univerzum->count][univerzum->count];
     rel_table(table, rel_arr, univerzum);
     for (int i = 0; i < univerzum->count; i++){
         for (int j = 0; j < univerzum->count; j++){
             for (int k = 0; k < univerzum->count; k++){
                 if (table[i][j] == 1 && table[j][k] == 1 && table[i][k] == 0){
-                    printf("false\n");
-                    return 0;
+                    return false;
                 }
             }
         }
     }
-    printf("true\n");
-    return 0;
+    return true;
 }
 
 /**
- * Checks if relation is function
+ * Checks if the relation is function.
+ * @param rel_arr The array of relation pairs.
+ * @param univerzum The univerzum.
+ * @return true if the relation is function, false otherwise.
  */
-int function(relations *rel_arr, univerzum *univerzum){
-    int table[N][N];
-    for (int i = 0; i < N; i++){
-        for (int j = 0; j < N; j++){
-            table[i][j] = 0;
-        }
-    }
+bool function(relations *rel_arr, univerzum *univerzum){
+    int table[univerzum->count][univerzum->count];
     rel_table(table, rel_arr, univerzum);
     for (int i = 0; i < univerzum->count; i++){
         int pocet_relaci = 0;
@@ -484,35 +537,12 @@ int function(relations *rel_arr, univerzum *univerzum){
                 pocet_relaci++;
             }
             if (pocet_relaci == 2){
-                printf("false\n");
-                return 0;
+                return false;
             }
         }
     }
-    printf("true\n");
-    return 0;
+    return true;
 }
-
-
-set **pole_set_init(set **sets){
-    sets = malloc(sizeof(set*));
-    if (sets == NULL){
-        fprintf(stderr, "Malloc se nepodaril!");
-        return sets;
-    }
-    return sets;
-}
-
-void array_set_add(set **sets, set *s, int *set_amount){
-    *set_amount ++;
-    set **tmp = realloc(sets, sizeof(set*) * *set_amount);
-    if (tmp == NULL){
-        fprintf(stderr, "Realloc se nepovedl!");
-    }
-    sets = tmp;
-    sets[*set_amount - 1] = s;
-}
-
 
 /** muj main, zatim je blby, ale umi spocitat univerzu
  *
