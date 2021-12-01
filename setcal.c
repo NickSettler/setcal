@@ -1,15 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <malloc.h>
-#define N 3
+#include <stdbool.h>
+#include <stdlib.h>
 
-/**
- * Definition for bool
- */
-typedef enum {
-    false,
-    true
-} bool;
+#define N 3
 
 /**
  * Definition for singly-linked list.
@@ -32,19 +27,19 @@ typedef struct set {
 /**
  * Definition for items in set array.
  */
- typedef struct item t_item;
- struct item{
-     set s;
-     t_item *next;
- };
+typedef struct item t_item;
+struct item {
+    set s;
+    t_item *next;
+};
 
 /**
 * Definition for set array.
 */
-typedef struct{
+typedef struct {
     t_item *head;
     t_item *tail;
-}t_list;
+} t_list;
 
 /**
  * Operation data structure
@@ -77,35 +72,56 @@ typedef enum {
  */
 typedef struct {
     commands type;
-    char *operation;
-    char *param1;
-    char *param2;
+    char **args;
 } command_t;
+
+typedef struct {
+    int size;
+    int capacity;
+    char **elements;
+} vector_t;
 
 /**
  * Prototypes of functions
  */
 void rel_table(int **table, relations *rel_arr, univerzum *univerzum);
+
 int find_operation(operation *operations, int size, char *name);
-command_t *parse_commands(char **commands, int size);
-void print_commands(command_t *commands, int size);
+
 set *set_init(int capacity);
+
 void set_add(set *s, char *e);
+
 void set_add_row(set *s, int row);
+
 void set_print(set *s);
+
 void list_init(t_list *list);
+
 void insert_first(t_list *list, set s);
+
 void write_list(const t_list *list);
+
 bool set_is_empty(set *s);
+
 set *set_union(set *s1, set *s2);
+
 set *set_intersection(set *s1, set *s2);
+
 set *set_difference(set *s1, set *s2);
+
 bool set_is_subset(set *s1, set *s2);
+
 bool set_is_equal(set *s1, set *s2);
+
 bool reflexive(relations *rel_arr, univerzum *univerzum);
+
 bool symmetric(relations *rel_arr, univerzum *univerzum);
+
 bool antisymmetric(relations *rel_arr, univerzum *univerzum);
+
 bool transitive(relations *rel_arr, univerzum *univerzum);
+
 bool function(relations *rel_arr, univerzum *univerzum);
 
 
@@ -127,19 +143,19 @@ int main(int argc, char *argv[]) {
     univerzum = set_init(1);
     set **sets = NULL;
     int set_amount = 0;
-    while (fgets(row, 101, file)){
+    while (fgets(row, 101, file)) {
         istr = strtok(row, " \n");
-        if (strcmp(istr,"U") == 0){
+        if (strcmp(istr, "U") == 0) {
             istr = strtok(NULL, " \n");
-            while (istr != NULL){
+            while (istr != NULL) {
                 set_add(univerzum, istr);
                 istr = strtok(NULL, " \n");
             }
-        } else if (strcmp(istr,"S") == 0){
+        } else if (strcmp(istr, "S") == 0) {
             set *s;
             s = set_init(1);
             istr = strtok(NULL, " \n");
-            while(istr != NULL){
+            while (istr != NULL) {
                 set_add(s, istr);
                 istr = strtok(NULL, " \n");
             }
@@ -166,26 +182,27 @@ int main(int argc, char *argv[]) {
 /**
  * table of 0 and 1 for relations
  */
-void  rel_table(int **table, relations *rel_arr, univerzum *univerzum){
-    for (int i = 0; i < univerzum->count; i++){
-        for (int j = 0; j < univerzum->count; j++){
+void rel_table(int **table, relations *rel_arr, univerzum *univerzum) {
+    for (int i = 0; i < univerzum->count; i++) {
+        for (int j = 0; j < univerzum->count; j++) {
             table[i][j] = 0;
         }
     }
-    for (int i = 0; i < rel_arr->count_pairs; i++){
-        for (int j = 0; j < univerzum->count; j++){
-            if (strcmp(rel_arr->pairs[i][0], univerzum->words[j]) == 0){
-                for (int k = 0; k < univerzum->count; k++){
-                    if (strcmp(rel_arr->pairs[i][1], univerzum->words[k]) == 0){
+    for (int i = 0; i < rel_arr->count_pairs; i++) {
+        for (int j = 0; j < univerzum->count; j++) {
+            if (strcmp(rel_arr->pairs[i][0], univerzum->words[j]) == 0) {
+                for (int k = 0; k < univerzum->count; k++) {
+                    if (strcmp(rel_arr->pairs[i][1], univerzum->words[k]) ==
+                        0) {
                         table[j][k] = 1;
                     }
                 }
             }
         }
     }
-    for (int i = 0; i < univerzum->count; i++){
-        for (int j = 0; j < univerzum->count; j++){
-            printf("%d ",table[i][j]);
+    for (int i = 0; i < univerzum->count; i++) {
+        for (int j = 0; j < univerzum->count; j++) {
+            printf("%d ", table[i][j]);
         }
         printf("\n");
     }
@@ -205,40 +222,6 @@ int find_operation(operation *operations, int size, char *name) {
         }
     }
     return -1;
-}
-
-/**
- * Parses commands array.
- * @param commands Commands array
- * @param size Commands array size
- * @return Parsed commands array
- */
-command_t *parse_commands(char **commands, int size) {
-    command_t *result = malloc(sizeof(command_t) * size);
-    for (int i = 0; i < size; i++) {
-        char *command = commands[i];
-        char *type = command;
-        char *operation = strchr(command, ' ');
-        char *param1 = strchr(operation + 1, ' ');
-        char *param2 = strchr(param1 + 1, ' ');
-        result[i].type = type[0];
-        result[i].operation = operation + 1;
-        result[i].param1 = param1 + 1;
-        result[i].param2 = param2 + 1;
-    }
-    return result;
-}
-
-/**
- * Prints commands array.
- * @param commands Commands array
- * @param size Commands array size
- */
-void print_commands(command_t *commands, int size) {
-    for (int i = 0; i < size; i++) {
-        printf("%c %s %s %s\n", commands[i].type, commands[i].operation,
-               commands[i].param1, commands[i].param2);
-    }
 }
 
 /**
@@ -273,7 +256,7 @@ void set_add(set *s, char *e) {
  * @param s The set.
  * @param e The element to add.
  */
-void set_add_row(set *s, int row){
+void set_add_row(set *s, int row) {
     s->row = row;
 }
 
@@ -291,9 +274,9 @@ void set_print(set *s) {
  * Creates list of sets
  * @param list The list of sets.
  */
-void list_init(t_list *list){
-    list -> head = NULL;
-    list -> tail = NULL;
+void list_init(t_list *list) {
+    list->head = NULL;
+    list->tail = NULL;
 }
 
 /**
@@ -301,9 +284,9 @@ void list_init(t_list *list){
  * @param list The list of sets.
  * @param s The set to add.
  */
-void insert_first(t_list *list, set s){
+void insert_first(t_list *list, set s) {
     t_item *new_item;
-    if ((new_item = malloc(sizeof(t_item))) == NULL){
+    if ((new_item = malloc(sizeof(t_item))) == NULL) {
         fprintf(stderr, "Error during malloc!\n");
         return;
     }
@@ -317,9 +300,9 @@ void insert_first(t_list *list, set s){
  * @param list The list of sets.
  * @param s The set to add.
  */
-void write_list(const t_list *list){
-    for (t_item *tmp = list->head; tmp != NULL; tmp = tmp->next){
-        printf("%d %d",tmp->s.size, tmp->s.capacity);
+void write_list(const t_list *list) {
+    for (t_item *tmp = list->head; tmp != NULL; tmp = tmp->next) {
+        printf("%d %d", tmp->s.size, tmp->s.capacity);
     }
 }
 
@@ -451,11 +434,11 @@ bool set_is_equal(set *s1, set *s2) {
  * @param univerzum The univerzum.
  * @return true if the relation is reflexive, false otherwise.
  */
-bool reflexive(relations *rel_arr, univerzum *univerzum){
+bool reflexive(relations *rel_arr, univerzum *univerzum) {
     int table[univerzum->count][univerzum->count];
     rel_table(table, rel_arr, univerzum);
-    for (int i = 0; i < univerzum->count; i++){
-        if (table[i][i] == 0){
+    for (int i = 0; i < univerzum->count; i++) {
+        if (table[i][i] == 0) {
             return false;
         }
     }
@@ -468,12 +451,12 @@ bool reflexive(relations *rel_arr, univerzum *univerzum){
  * @param univerzum The univerzum.
  * @return true if the relation is symmetric, false otherwise.
  */
-bool symmetric(relations *rel_arr, univerzum *univerzum){
+bool symmetric(relations *rel_arr, univerzum *univerzum) {
     int table[univerzum->count][univerzum->count];
     rel_table(table, rel_arr, univerzum);
-    for (int i = 0; i < univerzum->count; i++){
-        for (int j = 0; j < univerzum->count; j++){
-            if (table[i][j] == 1 && table[j][i] == 0){
+    for (int i = 0; i < univerzum->count; i++) {
+        for (int j = 0; j < univerzum->count; j++) {
+            if (table[i][j] == 1 && table[j][i] == 0) {
                 return false;
             }
         }
@@ -487,12 +470,12 @@ bool symmetric(relations *rel_arr, univerzum *univerzum){
  * @param univerzum The univerzum.
  * @return true if the relation is antisymmetric, false otherwise.
  */
-bool antisymmetric(relations *rel_arr, univerzum *univerzum){
+bool antisymmetric(relations *rel_arr, univerzum *univerzum) {
     int table[univerzum->count][univerzum->count];
     rel_table(table, rel_arr, univerzum);
-    for (int i = 0; i < univerzum->count; i++){
-        for (int j = 0; j < univerzum->count; j++){
-            if (table[i][j] == 1 && table[j][i] == 1 && i!=j){
+    for (int i = 0; i < univerzum->count; i++) {
+        for (int j = 0; j < univerzum->count; j++) {
+            if (table[i][j] == 1 && table[j][i] == 1 && i != j) {
                 return false;
             }
         }
@@ -506,13 +489,13 @@ bool antisymmetric(relations *rel_arr, univerzum *univerzum){
  * @param univerzum The univerzum.
  * @return true if the relation is transitive, false otherwise.
  */
-bool transitive(relations *rel_arr, univerzum *univerzum){
+bool transitive(relations *rel_arr, univerzum *univerzum) {
     int table[univerzum->count][univerzum->count];
     rel_table(table, rel_arr, univerzum);
-    for (int i = 0; i < univerzum->count; i++){
-        for (int j = 0; j < univerzum->count; j++){
-            for (int k = 0; k < univerzum->count; k++){
-                if (table[i][j] == 1 && table[j][k] == 1 && table[i][k] == 0){
+    for (int i = 0; i < univerzum->count; i++) {
+        for (int j = 0; j < univerzum->count; j++) {
+            for (int k = 0; k < univerzum->count; k++) {
+                if (table[i][j] == 1 && table[j][k] == 1 && table[i][k] == 0) {
                     return false;
                 }
             }
@@ -527,16 +510,16 @@ bool transitive(relations *rel_arr, univerzum *univerzum){
  * @param univerzum The univerzum.
  * @return true if the relation is function, false otherwise.
  */
-bool function(relations *rel_arr, univerzum *univerzum){
+bool function(relations *rel_arr, univerzum *univerzum) {
     int table[univerzum->count][univerzum->count];
     rel_table(table, rel_arr, univerzum);
-    for (int i = 0; i < univerzum->count; i++){
+    for (int i = 0; i < univerzum->count; i++) {
         int pocet_relaci = 0;
-        for (int j = 0; j < univerzum->count; j++){
-            if (table[i][j] == 1){
+        for (int j = 0; j < univerzum->count; j++) {
+            if (table[i][j] == 1) {
                 pocet_relaci++;
             }
-            if (pocet_relaci == 2){
+            if (pocet_relaci == 2) {
                 return false;
             }
         }
