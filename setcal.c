@@ -922,14 +922,167 @@ typedef struct {
 } operation;
 
 /**
+ * Initializes an operation.
+ * @param name The name.
+ * @param pointer The pointer.
+ * @return The initialized operation.
+ */
+operation *operation_init(char *name, void *pointer) {
+    if (pointer == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
+
+    operation *o = (operation *) malloc(sizeof(operation));
+
+    if (o == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
+
+    o->name = name;
+    o->pointer = pointer;
+
+    return o;
+}
+
+
+/**
+ * Frees an operation.
+ * @param o The operation.
+ */
+void operation_free(operation *o) {
+    if (o == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
+
+    free(o);
+}
+
+/**
+ * -----------------------------------------------------------------------------
+ * COMMAND MODULE [OPERATION MAP]
+ * -----------------------------------------------------------------------------
+ */
+
+typedef struct operation_map_t operation_map_t;
+
+typedef struct operation_map_t {
+    char *name;
+
+    void (*function)(char *);
+
+    operation_map_t *next;
+};
+
+operation_map_t *operation_map_init(char *name, void (*function)(char *)) {
+    if (function == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
+
+    operation_map_t *om = (operation_map_t *) malloc(sizeof(operation_map_t));
+
+    if (om == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
+
+    om->name = name;
+    om->function = function;
+    om->next = NULL;
+
+    return om;
+}
+
+void
+operation_map_add(operation_map_t *om, char *name, void (*function)(char *)) {
+    if (om == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
+
+    if (function == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
+
+    operation_map_t *temp = om;
+
+    while (temp->next != NULL) {
+        temp = temp->next;
+    }
+
+    temp->next = operation_map_init(name, function);
+}
+
+// create a function to get the first element of the map
+operation_map_t *operation_map_get_first(operation_map_t *om) {
+    if (om == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
+
+    return om;
+}
+
+// create a function to get the last element of the map
+operation_map_t *operation_map_get_last(operation_map_t *om) {
+    if (om == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
+
+    operation_map_t *temp = om;
+
+    while (temp->next != NULL) {
+        temp = temp->next;
+    }
+
+    return temp;
+}
+
+// create a function to get size of the map
+int operation_map_size(operation_map_t *om) {
+    if (om == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
+
+    int size = 0;
+    operation_map_t *temp = om;
+
+    while (temp != NULL) {
+        size++;
+        temp = temp->next;
+    }
+
+    return size;
+}
+
+operation_map_t *find_operation(char *name, operation_map_t *om) {
+    if (om == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
+
+    while (om != NULL) {
+        if (strcmp(om->name, name) == 0)
+            return om;
+        om = om->next;
+    }
+
+    return NULL;
+}
+
+// create a function to free the map
+void operation_map_free(operation_map_t *om) {
+    if (om == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
+
+    operation_map_t *temp = om;
+
+    while (temp != NULL) {
+        om = om->next;
+        free(temp);
+        temp = om;
+    }
+}
+
+
+/**
  * -----------------------------------------------------------------------------
  * COMMAND MODULE [COMMAND SYSTEM]
  * -----------------------------------------------------------------------------
  */
 
+/**
+ * Command system type.
+ */
 typedef struct {
     char *filename;
     command_vector_t *cv;
+    operation_map_t *operation_map;
+    set_t universe;
 } command_system_t;
 
 /**
@@ -938,7 +1091,8 @@ typedef struct {
  * @return The initialized command system.
  */
 command_system_t *command_system_init(char *filename) {
-    command_system_t *cs = (command_system_t *) malloc(sizeof(command_system_t));
+    command_system_t *cs = (command_system_t *) malloc(
+            sizeof(command_system_t));
 
     if (cs == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
