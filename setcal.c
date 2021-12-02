@@ -194,6 +194,8 @@ void resize_all(vector_t *v, unsigned int max);
 
 void vector_add(vector_t *v, char *s);
 
+bool vector_contains(vector_t *v, char *s);
+
 void vector_remove(vector_t *v, int index);
 
 void vector_foreach(vector_t *v, void (*f)(char *));
@@ -273,6 +275,15 @@ void vector_add(vector_t *v, char *s) {
     v->size++;
 
     resize_all(v, find_max_vector_element_size(v));
+}
+
+bool vector_contains(vector_t *v, char *s) {
+    for (int i = 0; i < v->size; i++) {
+        if (strcmp(v->elements[i], s) == 0) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
