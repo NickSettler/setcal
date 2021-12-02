@@ -1102,7 +1102,9 @@ command_vector_t *parse_file(char *filename) {
  */
 typedef struct {
     char *name;
-    void *pointer;
+    int argc;
+
+    void *(*f)(int n, ...);
 } operation;
 
 /**
@@ -1111,8 +1113,8 @@ typedef struct {
  * @param pointer The pointer.
  * @return The initialized operation.
  */
-operation *operation_init(char *name, void *pointer) {
-    if (pointer == NULL)
+operation *operation_init(char *name, void *(*f)(int n, ...)) {
+    if (f == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
 
     operation *o = (operation *) malloc(sizeof(operation));
@@ -1121,7 +1123,7 @@ operation *operation_init(char *name, void *pointer) {
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
 
     o->name = name;
-    o->pointer = pointer;
+    o->f = f;
 
     return o;
 }
