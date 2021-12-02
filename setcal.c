@@ -337,58 +337,35 @@ typedef struct set {
     int size;
     int capacity;
     char **elements;
-} set;
+} set_t;
 
-/**
- * Definition for items in set array.
- */
-typedef struct item t_item;
-struct item {
-    set s;
-    t_item *next;
-};
+set_t *set_init(int capacity);
 
-/**
-* Definition for set array.
-*/
-typedef struct {
-    t_item *head;
-    t_item *tail;
-} t_list;
+void set_add(set_t *s, char *e);
 
-set *set_init(int capacity);
+void set_add_row(set_t *s, int row);
 
-void set_add(set *s, char *e);
+void set_print(set_t *s);
 
-void set_add_row(set *s, int row);
+bool set_is_empty(set_t *s);
 
-void set_print(set *s);
+set_t *set_union(set_t *s1, set_t *s2);
 
-void list_init(t_list *list);
+set_t *set_intersection(set_t *s1, set_t *s2);
 
-void insert_first(t_list *list, set s);
+set_t *set_difference(set_t *s1, set_t *s2);
 
-void write_list(const t_list *list);
+bool set_is_subset(set_t *s1, set_t *s2);
 
-bool set_is_empty(set *s);
-
-set *set_union(set *s1, set *s2);
-
-set *set_intersection(set *s1, set *s2);
-
-set *set_difference(set *s1, set *s2);
-
-bool set_is_subset(set *s1, set *s2);
-
-bool set_is_equal(set *s1, set *s2);
+bool set_is_equal(set_t *s1, set_t *s2);
 
 /**
  * Creates a new set.
  * @param capacity The initial capacity of the set.
  * @return The new set.
  */
-set *set_init(int capacity) {
-    set *s = malloc(sizeof(set));
+set_t *set_init(int capacity) {
+    set_t *s = malloc(sizeof(set_t));
 
     if (s == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
@@ -408,7 +385,7 @@ set *set_init(int capacity) {
  * @param s The set.
  * @param e The element to add.
  */
-void set_add(set *s, char *e) {
+void set_add(set_t *s, char *e) {
     if (s->size == s->capacity) {
         s->capacity *= 2;
         s->elements = realloc(s->elements, sizeof(char *) * s->capacity);
@@ -425,7 +402,7 @@ void set_add(set *s, char *e) {
 // * @param s The set.
 // * @param e The element to add.
 // */
-//void set_add_row(set *s, int row) {
+//void set_add_row(set_t *s, int row) {
 //    s->row = row;
 //}
 
@@ -433,45 +410,9 @@ void set_add(set *s, char *e) {
  * Prints the set.
  * @param s The set.
  */
-void set_print(set *s) {
+void set_print(set_t *s) {
     for (int i = 0; i < s->size; i++) {
         printf("%s\n", s->elements[i]);
-    }
-}
-
-/**
- * Creates list of sets
- * @param list The list of sets.
- */
-void list_init(t_list *list) {
-    list->head = NULL;
-    list->tail = NULL;
-}
-
-/**
- * Adds set to a first position of list of sets
- * @param list The list of sets.
- * @param s The set to add.
- */
-void insert_first(t_list *list, set s) {
-    t_item *new_item = malloc(sizeof(t_item));
-
-    if (new_item == NULL)
-        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
-
-    new_item->s = s;
-    new_item->next = list->head;
-    list->head = new_item;
-}
-
-/**
- * Writes elements of list
- * @param list The list of sets.
- * @param s The set to add.
- */
-void write_list(const t_list *list) {
-    for (t_item *tmp = list->head; tmp != NULL; tmp = tmp->next) {
-        printf("%d %d", tmp->s.size, tmp->s.capacity);
     }
 }
 
@@ -480,7 +421,7 @@ void write_list(const t_list *list) {
  * @param s The set.
  * @return true if the set is empty, false otherwise.
  */
-bool set_is_empty(set *s) {
+bool set_is_empty(set_t *s) {
     return s->size == 0;
 }
 
@@ -490,8 +431,8 @@ bool set_is_empty(set *s) {
  * @param s2 The second set.
  * @return The union of the two sets.
  */
-set *set_union(set *s1, set *s2) {
-    set *s = set_init(s1->capacity + s2->capacity);
+set_t *set_union(set_t *s1, set_t *s2) {
+    set_t *s = set_init(s1->capacity + s2->capacity);
 
     for (int i = 0; i < s1->size; i++) {
         set_add(s, s1->elements[i]);
@@ -520,8 +461,8 @@ set *set_union(set *s1, set *s2) {
  * @param s2 The second set.
  * @return The intersection of the two sets.
  */
-set *set_intersection(set *s1, set *s2) {
-    set *s = set_init(s1->capacity + s2->capacity);
+set_t *set_intersection(set_t *s1, set_t *s2) {
+    set_t *s = set_init(s1->capacity + s2->capacity);
 
     for (int i = 0; i < s1->size; i++) {
         for (int j = 0; j < s2->size; j++) {
@@ -540,8 +481,8 @@ set *set_intersection(set *s1, set *s2) {
  * @param s2 The second set.
  * @return The difference of the two sets.
  */
-set *set_difference(set *s1, set *s2) {
-    set *s = set_init(s1->capacity + s2->capacity);
+set_t *set_difference(set_t *s1, set_t *s2) {
+    set_t *s = set_init(s1->capacity + s2->capacity);
 
     for (int i = 0; i < s1->size; i++) {
         bool is_in_set = false;
@@ -565,7 +506,7 @@ set *set_difference(set *s1, set *s2) {
  * @param s2 The second set.
  * @return true if the first set is a subset of the second set, false otherwise.
  */
-bool set_is_subset(set *s1, set *s2) {
+bool set_is_subset(set_t *s1, set_t *s2) {
     for (int i = 0; i < s1->size; i++) {
 
         bool is_in_set = false;
@@ -589,7 +530,7 @@ bool set_is_subset(set *s1, set *s2) {
  * @param s2 The second set.
  * @return true if the first set is equal to the second set, false otherwise.
  */
-bool set_is_equal(set *s1, set *s2) {
+bool set_is_equal(set_t *s1, set_t *s2) {
     if (s1->size != s2->size) {
         return false;
     }
@@ -970,19 +911,17 @@ typedef struct {
 /**
  * Prototypes of functions
  */
-void rel_table(int **table, relations *rel_arr, set *univerzum);
+void rel_table(int **table, relations *rel_arr, set_t *univerzum);
 
-int find_operation(operation *operations, int size, char *name);
+bool reflexive(relations *rel_arr, set_t *univerzum);
 
-bool reflexive(relations *rel_arr, set *univerzum);
+bool symmetric(relations *rel_arr, set_t *univerzum);
 
-bool symmetric(relations *rel_arr, set *univerzum);
+bool antisymmetric(relations *rel_arr, set_t *univerzum);
 
-bool antisymmetric(relations *rel_arr, set *univerzum);
+bool transitive(relations *rel_arr, set_t *univerzum);
 
-bool transitive(relations *rel_arr, set *univerzum);
-
-bool function(relations *rel_arr, set *univerzum);
+bool function(relations *rel_arr, set_t *univerzum);
 
 
 /**
@@ -1006,7 +945,7 @@ int main(int argc, char *argv[]) {
 //    char *istr;
 //    univerzum *univerzum;
 //    univerzum = set_init(1);
-//    set **sets = NULL;
+//    set_t **sets = NULL;
 //    int set_amount = 0;
 //    while (fgets(row, 101, file)) {
 //        istr = strtok(row, " \n");
@@ -1017,7 +956,7 @@ int main(int argc, char *argv[]) {
 //                istr = strtok(NULL, " \n");
 //            }
 //        } else if (strcmp(istr, "S") == 0) {
-//            set *s;
+//            set_t *s;
 //            s = set_init(1);
 //            istr = strtok(NULL, " \n");
 //            while (istr != NULL) {
@@ -1047,7 +986,7 @@ int main(int argc, char *argv[]) {
 /**
  * table of 0 and 1 for relations
  */
-void rel_table(int **table, relations *rel_arr, set *univerzum) {
+void rel_table(int **table, relations *rel_arr, set_t *univerzum) {
     for (int i = 0; i < univerzum->size; i++) {
         for (int j = 0; j < univerzum->size; j++) {
             table[i][j] = 0;
@@ -1074,28 +1013,12 @@ void rel_table(int **table, relations *rel_arr, set *univerzum) {
 }
 
 /**
- * Finds operation by name
- * @param operations Operations array
- * @param size Operations array size
- * @param name Operation name
- * @return Operation index or -1 if not found
- */
-int find_operation(operation *operations, int size, char *name) {
-    for (int i = 0; i < size; i++) {
-        if (strcmp(operations[i].name, name) == 0) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-/**
  * Checks if the relation is reflexive.
  * @param rel_arr The array of relation pairs.
  * @param univerzum The univerzum.
  * @return true if the relation is reflexive, false otherwise.
  */
-bool reflexive(relations *rel_arr, set *univerzum) {
+bool reflexive(relations *rel_arr, set_t *univerzum) {
     int table[univerzum->size][univerzum->size];
     rel_table(table, rel_arr, univerzum);
     for (int i = 0; i < univerzum->size; i++) {
@@ -1112,7 +1035,7 @@ bool reflexive(relations *rel_arr, set *univerzum) {
  * @param univerzum The univerzum.
  * @return true if the relation is symmetric, false otherwise.
  */
-bool symmetric(relations *rel_arr, set *univerzum) {
+bool symmetric(relations *rel_arr, set_t *univerzum) {
     int table[univerzum->size][univerzum->size];
     rel_table(table, rel_arr, univerzum);
     for (int i = 0; i < univerzum->size; i++) {
@@ -1131,7 +1054,7 @@ bool symmetric(relations *rel_arr, set *univerzum) {
  * @param univerzum The univerzum.
  * @return true if the relation is antisymmetric, false otherwise.
  */
-bool antisymmetric(relations *rel_arr, set *univerzum) {
+bool antisymmetric(relations *rel_arr, set_t *univerzum) {
     int table[univerzum->size][univerzum->size];
     rel_table(table, rel_arr, univerzum);
     for (int i = 0; i < univerzum->size; i++) {
@@ -1150,7 +1073,7 @@ bool antisymmetric(relations *rel_arr, set *univerzum) {
  * @param univerzum The univerzum.
  * @return true if the relation is transitive, false otherwise.
  */
-bool transitive(relations *rel_arr, set *univerzum) {
+bool transitive(relations *rel_arr, set_t *univerzum) {
     int table[univerzum->size][univerzum->size];
     rel_table(table, rel_arr, univerzum);
     for (int i = 0; i < univerzum->size; i++) {
@@ -1171,7 +1094,7 @@ bool transitive(relations *rel_arr, set *univerzum) {
  * @param univerzum The univerzum.
  * @return true if the relation is function, false otherwise.
  */
-bool function(relations *rel_arr, set *univerzum) {
+bool function(relations *rel_arr, set_t *univerzum) {
     int table[univerzum->size][univerzum->size];
     rel_table(table, rel_arr, univerzum);
     for (int i = 0; i < univerzum->size; i++) {
@@ -1199,7 +1122,7 @@ bool function(relations *rel_arr, set *univerzum) {
     }
     char radek[101];
     char *istr;
-    set univerzum;
+    set_t univerzum;
     univerzum.pocet = 0;
     univerzum.prvky = NULL;
     mnozina_t *mnoziny;
