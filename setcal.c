@@ -953,6 +953,42 @@ typedef struct {
 } operation;
 
 /**
+ * -----------------------------------------------------------------------------
+ * COMMAND MODULE [COMMAND SYSTEM]
+ * -----------------------------------------------------------------------------
+ */
+
+typedef struct {
+    char *filename;
+    command_vector_t *cv;
+} command_system_t;
+
+/**
+ * Initializes a command system.
+ * @param filename The file name.
+ * @return The initialized command system.
+ */
+command_system_t *command_system_init(char *filename) {
+    command_system_t *cs = (command_system_t *) malloc(sizeof(command_system_t));
+
+    if (cs == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
+
+    cs->filename = filename;
+    cs->cv = parse_file(filename);
+
+    return cs;
+}
+
+void command_system_free(command_system_t *cs) {
+    if (cs == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
+
+    command_vector_free(cs->cv);
+    free(cs);
+}
+
+/**
  * Definition for relations
  */
 typedef struct {
@@ -985,46 +1021,8 @@ bool function(relations *rel_arr, set *univerzum);
  * @return 0 if the program ran successfully, 1 otherwise.
  */
 int main(int argc, char *argv[]) {
-//    vector_add(v, "a");
-//    vector_add(v, "b");
-//    vector_add(v, "cd e");
-//
-//    vector_foreach(v, print_string);
-//    vector_foreach(v, print_size);
-
-//    command_vector_t *cv = command_vector_init(1);
-//
-//    vector_t *args = vector_init(2);
-//    vector_add(args, "asd");
-//    vector_add(args, "cde");
-//    vector_add(args, "fghss");
-//
-//    command_t c1 = {
-//            .type = U,
-//            .args = *args
-//    };
-//
-//    command_t c2 = {
-//            .type = R,
-//            .args = *args
-//    };
-//
-//    command_vector_add(cv, c1);
-//
-//    command_vector_print(cv);
-//
-//    command_vector_replace(cv, c2, 0);
-
-//    command_t *c = parse_command("U a b c d e");
-//    command_t *c2 = parse_command("R a b c d e");
-//
-//    command_vector_t *cv = command_vector_init(2);
-//    command_vector_add(cv, *c);
-//    command_vector_add(cv, *c2);
-//    command_vector_print(cv);
-
-    command_vector_t *cv = parse_file("test_001.txt");
-    command_vector_print(cv);
+    command_system_t *cs = command_system_init("test_001.txt");
+    command_vector_print(cs->cv);
 
 //    FILE *file = fopen(argv[1], "r");
 //    if (file == NULL) {
