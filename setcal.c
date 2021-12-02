@@ -584,57 +584,63 @@ bool set_is_equal(set_t *s1, set_t *s2) {
 
 /**
  * -----------------------------------------------------------------------------
- * SET MODULE [SET MAP]
+ * SET MODULE [SET VECTOR]
  * -----------------------------------------------------------------------------
  */
 
 /**
- * Set map type.
+ * Set vector type.
  */
-typedef struct set_map_t set_map_t;
-typedef struct set_map_t {
-    int index;
-    set_t *s;
-    set_map_t *next;
-};
+typedef struct set_vector_t {
+    int size;
+    int capacity;
+    set_t **sets;
+} set_vector_t;
 
-// create a function to init set_t map
-set_map_t *set_map_init(set_t *s) {
-    set_map_t *sm = (set_map_t *) malloc(sizeof(set_map_t));
+set_vector_t *set_vector_init(int capacity) {
+    if (capacity < 1)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid capacity");
 
-    if (sm == NULL)
+    set_vector_t *sv = malloc(sizeof(set_vector_t));
+
+    if (sv == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
 
-    sm->index = 0;
-    sm->s = s;
-    sm->next = NULL;
+    sv->size = 0;
+    sv->capacity = capacity;
+    sv->sets = malloc(sizeof(set_t *) * capacity);
 
-    printf("%s\n", "Set map initialized");
+    if (sv->sets == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
 
-    return sm;
+    return sv;
 }
 
-// create a function to add to set_t map. check if map is inited
-void set_map_add(set_map_t *sm, set_t *s) {
-    if (sm == NULL)
-        print_error(__FILENAME__, __LINE__, __func__,
-                    "Set map is not initialized");
+// create a function to add to vector
+void set_vector_add(set_vector_t *sv, set_t *s) {
+    if (sv->size == sv->capacity) {
+        sv->capacity *= 2;
+        sv->sets = realloc(sv->sets, sizeof(set_t *) * sv->capacity);
 
-    set_map_t *new_sm = set_map_init(s);
-    new_sm->index = sm->index + 1;
-    new_sm->next = sm->next;
-    sm->next = new_sm;
-}
-
-void set_map_print(set_map_t *sm) {
-    if (sm == NULL) {
-        printf("\n");
-        return;
+        if (sv->sets == NULL)
+            print_error(__FILENAME__, __LINE__, __func__, "Realloc failed");
     }
 
-    printf("%d: ", sm->index);
-    set_print(sm->s);
-    set_map_print(sm->next);
+    sv->sets[sv->size] = s;
+    sv->size++;
+}
+
+set_t *set_vector_get(set_vector_t *sv, int index) {
+    if (index < 0 || index >= sv->size)
+        print_error(__FILENAME__, __LINE__, __func__, "Index out of bounds");
+
+    return sv->sets[index];
+}
+
+void set_vector_print(set_vector_t *sv) {
+    for (int i = 0; i < sv->size; i++) {
+        set_print(sv->sets[i]);
+    }
 }
 
 
