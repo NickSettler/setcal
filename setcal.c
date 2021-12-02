@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 /**
  * -----------------------------------------------------------------------------
@@ -74,6 +75,16 @@ char *pad_string(char *str, unsigned int max) {
     }
     new_str[max] = '\0';
     return new_str;
+}
+
+// create a function to check is string contains only characters
+bool is_string_only_characters(char *str) {
+    for (unsigned int i = 0; i < strlen(str); i++) {
+        if (isalpha(str[i]) != 1 && isspace(str[i]) != 1) {
+            return false;
+        }
+    }
+    return true;
 }
 
 /**
@@ -295,6 +306,23 @@ void vector_foreach(vector_t *v, void (*f)(char *)) {
     for (int i = 0; i < v->size; i++) {
         f(v->elements[i]);
     }
+}
+
+// create a function to convert vector args to string with delimeter
+char *vector_to_string(vector_t *v, char *delim) {
+    char *str = (char *) malloc(sizeof(char) * (v->size + 1));
+
+    if (str == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
+
+    str[0] = '\0';
+    for (int i = 0; i < v->size; i++) {
+        strcat(str, v->elements[i]);
+        if (i != v->size - 1) {
+            strcat(str, delim);
+        }
+    }
+    return str;
 }
 
 /**
@@ -935,7 +963,8 @@ void print_command(command_t *c) {
             break;
     }
     for (int i = 0; i < c->args.size; i++) {
-        printf("%s ", c->args.elements[i]);
+        printf(i < c->args.size - 1 ? "%s " : "%s",
+               (char *) c->args.elements[i]);
     }
     printf("\n");
 }
@@ -1003,7 +1032,7 @@ command_t *parse_command(char *s) {
 command_t bool_to_command(bool b) {
     command_t *c = init_command();
 
-    c->args= *vector_init(1);
+    c->args = *vector_init(1);
     vector_add(&c->args, b ? "true" : "false");
 
     return *c;
@@ -1130,6 +1159,18 @@ bool validate_command_vector(command_vector_t *cv) {
     }
     if (u_count != 1) {
         return false;
+    }
+    /**
+     * Universe command can contain only strings.
+     */
+
+    command_t *u_command = find_command_by_type(cv, U);
+
+    for (int i = 0; i < u_command->args.size; ++i) {
+        if(is_string_only_characters(u_command->args.elements[i])) {
+            print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                        "Invalid command vector");
+        }
     }
 
     /**
@@ -1510,12 +1551,13 @@ bool function(relations *rel_arr, set_t *univerzum);
  * @return 0 if the program ran successfully, 1 otherwise.
  */
 int main(int argc, char *argv[]) {
-    command_system_t *cs = command_system_init("test_001.txt");
-    command_vector_print(cs->cv);
+    if (argc != 2)
+        print_error(__FILENAME__, __LINE__, __func__,
+                    "Invalid number of arguments");
+
+    command_system_t *cs = command_system_init(argv[1]);
 
     command_system_exec(cs);
-
-    printf("\n");
 
     command_vector_print(cs->cv);
 
