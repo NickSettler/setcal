@@ -910,42 +910,13 @@ command_vector_t *parse_file(char *filename) {
 }
 
 /**
- * Definition for singly-linked list.
+ * -----------------------------------------------------------------------------
+ * COMMAND MODULE [OPERATION]
+ * -----------------------------------------------------------------------------
  */
-typedef struct {
-    char **words;
-    int count;
-} univerzum;
 
 /**
- * Definition for singly-linked list.
- */
-typedef struct set {
-    int size;
-    int capacity;
-    char **elements;
-    int row;
-} set;
-
-/**
- * Definition for items in set array.
- */
-typedef struct item t_item;
-struct item {
-    set s;
-    t_item *next;
-};
-
-/**
-* Definition for set array.
-*/
-typedef struct {
-    t_item *head;
-    t_item *tail;
-} t_list;
-
-/**
- * Operation data structure
+ * Operation type
  */
 typedef struct {
     char *name;
