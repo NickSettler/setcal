@@ -862,9 +862,6 @@ typedef enum {
  */
 typedef struct {
     char *name;
-    int argc;
-
-    void *(*f)(int n, ...);
 } operation;
 
 typedef struct operation_vector_t {
@@ -1082,7 +1079,7 @@ void command_vector_add(command_vector_t *cv, command_t c);
 
 void command_vector_replace(command_vector_t *cv, command_t c, int index);
 
-bool validate_command_vector(command_vector_t *cv);
+bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov);
 
 command_t *find_command_by_type(command_vector_t *cv, commands type);
 
@@ -1153,7 +1150,7 @@ void command_vector_replace(command_vector_t *cv, command_t c, int index) {
  * @param cv The command vector.
  * @return true if valid, false otherwise.
  */
-bool validate_command_vector(command_vector_t *cv) {
+bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
     if (cv == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Command vector is NULL");
 
@@ -1296,20 +1293,15 @@ typedef struct {
 /**
  * Initializes an operation.
  * @param name The name.
- * @param pointer The pointer.
  * @return The initialized operation.
  */
-operation *operation_init(char *name, void *(*f)(int n, ...)) {
-    if (f == NULL)
-        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
-
+operation *operation_init(char *name) {
     operation *o = (operation *) malloc(sizeof(operation));
 
     if (o == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
 
     o->name = name;
-    o->f = f;
 
     return o;
 }
@@ -1334,9 +1326,11 @@ void operation_free(operation *o) {
 
 operation_vector_t *operation_vector_init(int capacity);
 
-void operation_vector_add(operation_vector_t *ov, operation o);
+void operation_vector_add(operation_vector_t *ov, operation *o);
 
 operation *operation_vector_find(operation_vector_t *ov, char *name);
+
+bool operation_vector_contains(operation_vector_t *ov, char *name);
 
 void operation_vector_free(operation_vector_t *ov);
 
@@ -1346,6 +1340,9 @@ void operation_vector_free(operation_vector_t *ov);
  * @return The initialized operation vector.
  */
 operation_vector_t *operation_vector_init(int capacity) {
+    if (capacity < 1)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid capacity");
+
     operation_vector_t *ov = (operation_vector_t *) malloc(
             sizeof(operation_vector_t));
 
@@ -1367,7 +1364,7 @@ operation_vector_t *operation_vector_init(int capacity) {
  * @param ov The operation vector.
  * @param o The operation.
  */
-void operation_vector_add(operation_vector_t *ov, operation o) {
+void operation_vector_add(operation_vector_t *ov, operation *o) {
     if (ov->size == ov->capacity) {
         ov->capacity *= 2;
         ov->operations = (operation **) realloc(ov->operations,
@@ -1378,7 +1375,7 @@ void operation_vector_add(operation_vector_t *ov, operation o) {
             print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
     }
 
-    ov->operations[ov->size] = &o;
+    ov->operations[ov->size] = o;
     ov->size++;
 }
 
@@ -1394,6 +1391,23 @@ operation *operation_vector_find(operation_vector_t *ov, char *name) {
             return ov->operations[i];
     }
     return NULL;
+}
+
+bool operation_vector_contains(operation_vector_t *ov, char *name) {
+    for (int i = 0; i < ov->size; i++) {
+        if (strcmp(ov->operations[i]->name, name) == 0)
+            return true;
+    }
+
+    return false;
+}
+
+void print_operation_vector(operation_vector_t *ov) {
+    for (int i = 0; i < ov->size; i++) {
+        printf("%s ", ov->operations[i]->name);
+    }
+
+    printf("\n");
 }
 
 /**
@@ -1421,6 +1435,8 @@ void operation_vector_free(operation_vector_t *ov) {
 
 command_system_t *command_system_init(char *filename);
 
+void command_system_init_base(command_system_t *cs);
+
 void command_system_validate(command_system_t *cs);
 
 void command_system_init_vectors(command_system_t *cs);
@@ -1446,6 +1462,7 @@ command_system_t *command_system_init(char *filename) {
     cs->filename = filename;
     cs->cv = parse_file(filename);
 
+    command_system_init_base(cs);
     command_system_validate(cs);
     command_system_init_vectors(cs);
 
@@ -1459,8 +1476,40 @@ command_system_t *command_system_init(char *filename) {
     return cs;
 }
 
+void command_system_init_base(command_system_t *cs) {
+    /**
+     * Initialize the operation vector.
+     */
+
+    cs->operation_vector = operation_vector_init(1);
+
+    operation_vector_add(cs->operation_vector, operation_init("empty"));
+    operation_vector_add(cs->operation_vector, operation_init("card"));
+    operation_vector_add(cs->operation_vector,
+                         operation_init("complement"));
+    operation_vector_add(cs->operation_vector, operation_init("union"));
+    operation_vector_add(cs->operation_vector, operation_init("intersect"));
+    operation_vector_add(cs->operation_vector, operation_init("minus"));
+    operation_vector_add(cs->operation_vector, operation_init("subseteq"));
+    operation_vector_add(cs->operation_vector, operation_init("subset"));
+    operation_vector_add(cs->operation_vector, operation_init("equals"));
+    operation_vector_add(cs->operation_vector, operation_init("reflexive"));
+    operation_vector_add(cs->operation_vector, operation_init("symmetric"));
+    operation_vector_add(cs->operation_vector,
+                         operation_init("antisymmetric"));
+    operation_vector_add(cs->operation_vector,
+                         operation_init("transitive"));
+    operation_vector_add(cs->operation_vector, operation_init("function"));
+    operation_vector_add(cs->operation_vector, operation_init("domain"));
+    operation_vector_add(cs->operation_vector, operation_init("codomain"));
+    operation_vector_add(cs->operation_vector, operation_init("injective"));
+    operation_vector_add(cs->operation_vector,
+                         operation_init("surjective"));
+    operation_vector_add(cs->operation_vector, operation_init("bijective"));
+}
+
 void command_system_validate(command_system_t *cs) {
-    if (validate_command_vector(cs->cv) == false)
+    if (validate_command_vector(cs->cv, cs->operation_vector) == false)
         print_error(__FILENAME__, __LINE__, __func__, "Invalid input");
 }
 
