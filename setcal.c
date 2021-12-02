@@ -326,6 +326,292 @@ void vector_free(vector_t *v) {
 
 /**
  * -----------------------------------------------------------------------------
+ * SET MODULE
+ * -----------------------------------------------------------------------------
+ */
+
+/**
+ * Set type.
+ */
+typedef struct set {
+    int size;
+    int capacity;
+    char **elements;
+} set;
+
+/**
+ * Definition for items in set array.
+ */
+typedef struct item t_item;
+struct item {
+    set s;
+    t_item *next;
+};
+
+/**
+* Definition for set array.
+*/
+typedef struct {
+    t_item *head;
+    t_item *tail;
+} t_list;
+
+set *set_init(int capacity);
+
+void set_add(set *s, char *e);
+
+void set_add_row(set *s, int row);
+
+void set_print(set *s);
+
+void list_init(t_list *list);
+
+void insert_first(t_list *list, set s);
+
+void write_list(const t_list *list);
+
+bool set_is_empty(set *s);
+
+set *set_union(set *s1, set *s2);
+
+set *set_intersection(set *s1, set *s2);
+
+set *set_difference(set *s1, set *s2);
+
+bool set_is_subset(set *s1, set *s2);
+
+bool set_is_equal(set *s1, set *s2);
+
+/**
+ * Creates a new set.
+ * @param capacity The initial capacity of the set.
+ * @return The new set.
+ */
+set *set_init(int capacity) {
+    set *s = malloc(sizeof(set));
+
+    if (s == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
+
+    s->size = 0;
+    s->capacity = capacity;
+    s->elements = malloc(sizeof(char *) * capacity);
+
+    if (s->elements == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
+
+    return s;
+}
+
+/**
+ * Adds an element to the set.
+ * @param s The set.
+ * @param e The element to add.
+ */
+void set_add(set *s, char *e) {
+    if (s->size == s->capacity) {
+        s->capacity *= 2;
+        s->elements = realloc(s->elements, sizeof(char *) * s->capacity);
+
+        if (s->elements == NULL)
+            print_error(__FILENAME__, __LINE__, __func__, "Realloc failed");
+    }
+    s->elements[s->size] = e;
+    s->size++;
+}
+
+///**
+// * Adds a row number to the set.
+// * @param s The set.
+// * @param e The element to add.
+// */
+//void set_add_row(set *s, int row) {
+//    s->row = row;
+//}
+
+/**
+ * Prints the set.
+ * @param s The set.
+ */
+void set_print(set *s) {
+    for (int i = 0; i < s->size; i++) {
+        printf("%s\n", s->elements[i]);
+    }
+}
+
+/**
+ * Creates list of sets
+ * @param list The list of sets.
+ */
+void list_init(t_list *list) {
+    list->head = NULL;
+    list->tail = NULL;
+}
+
+/**
+ * Adds set to a first position of list of sets
+ * @param list The list of sets.
+ * @param s The set to add.
+ */
+void insert_first(t_list *list, set s) {
+    t_item *new_item = malloc(sizeof(t_item));
+
+    if (new_item == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
+
+    new_item->s = s;
+    new_item->next = list->head;
+    list->head = new_item;
+}
+
+/**
+ * Writes elements of list
+ * @param list The list of sets.
+ * @param s The set to add.
+ */
+void write_list(const t_list *list) {
+    for (t_item *tmp = list->head; tmp != NULL; tmp = tmp->next) {
+        printf("%d %d", tmp->s.size, tmp->s.capacity);
+    }
+}
+
+/**
+ * Checks if the set is empty.
+ * @param s The set.
+ * @return true if the set is empty, false otherwise.
+ */
+bool set_is_empty(set *s) {
+    return s->size == 0;
+}
+
+/**
+ * Union of two sets.
+ * @param s1 The first set.
+ * @param s2 The second set.
+ * @return The union of the two sets.
+ */
+set *set_union(set *s1, set *s2) {
+    set *s = set_init(s1->capacity + s2->capacity);
+
+    for (int i = 0; i < s1->size; i++) {
+        set_add(s, s1->elements[i]);
+    }
+
+    for (int i = 0; i < s2->size; i++) {
+        bool is_in_set = false;
+
+        for (int j = 0; j < s->size; j++) {
+            if (strcmp(s2->elements[i], s->elements[j]) == 0) {
+                is_in_set = true;
+            }
+        }
+
+        if (!is_in_set) {
+            set_add(s, s2->elements[i]);
+        }
+    }
+
+    return s;
+}
+
+/**
+ * Intersection of two sets.
+ * @param s1 The first set.
+ * @param s2 The second set.
+ * @return The intersection of the two sets.
+ */
+set *set_intersection(set *s1, set *s2) {
+    set *s = set_init(s1->capacity + s2->capacity);
+
+    for (int i = 0; i < s1->size; i++) {
+        for (int j = 0; j < s2->size; j++) {
+            if (strcmp(s1->elements[i], s2->elements[j]) == 0) {
+                set_add(s, s1->elements[i]);
+            }
+        }
+    }
+
+    return s;
+}
+
+/**
+ * Difference of two sets.
+ * @param s1 The first set.
+ * @param s2 The second set.
+ * @return The difference of the two sets.
+ */
+set *set_difference(set *s1, set *s2) {
+    set *s = set_init(s1->capacity + s2->capacity);
+
+    for (int i = 0; i < s1->size; i++) {
+        bool is_in_set = false;
+
+        for (int j = 0; j < s2->size; j++) {
+            if (strcmp(s1->elements[i], s2->elements[j]) == 0) {
+                is_in_set = true;
+            }
+        }
+
+        if (!is_in_set) {
+            set_add(s, s1->elements[i]);
+        }
+    }
+    return s;
+}
+
+/**
+ * Checks if the first set is a subset of the second set.
+ * @param s1 The first set.
+ * @param s2 The second set.
+ * @return true if the first set is a subset of the second set, false otherwise.
+ */
+bool set_is_subset(set *s1, set *s2) {
+    for (int i = 0; i < s1->size; i++) {
+
+        bool is_in_set = false;
+
+        for (int j = 0; j < s2->size; j++) {
+            if (strcmp(s1->elements[i], s2->elements[j]) == 0) {
+                is_in_set = true;
+            }
+        }
+
+        if (!is_in_set) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * Checks if the first set is equal to the second set.
+ * @param s1 The first set.
+ * @param s2 The second set.
+ * @return true if the first set is equal to the second set, false otherwise.
+ */
+bool set_is_equal(set *s1, set *s2) {
+    if (s1->size != s2->size) {
+        return false;
+    }
+
+    for (int i = 0; i < s1->size; i++) {
+        bool is_in_set = false;
+
+        for (int j = 0; j < s2->size; j++) {
+            if (strcmp(s1->elements[i], s2->elements[j]) == 0) {
+                is_in_set = true;
+            }
+        }
+
+        if (!is_in_set) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * -----------------------------------------------------------------------------
  * COMMAND MODULE [COMMAND]
  * -----------------------------------------------------------------------------
  */
@@ -681,32 +967,6 @@ void rel_table(int **table, relations *rel_arr, set *univerzum);
 
 int find_operation(operation *operations, int size, char *name);
 
-set *set_init(int capacity);
-
-void set_add(set *s, char *e);
-
-void set_add_row(set *s, int row);
-
-void set_print(set *s);
-
-void list_init(t_list *list);
-
-void insert_first(t_list *list, set s);
-
-void write_list(const t_list *list);
-
-bool set_is_empty(set *s);
-
-set *set_union(set *s1, set *s2);
-
-set *set_intersection(set *s1, set *s2);
-
-set *set_difference(set *s1, set *s2);
-
-bool set_is_subset(set *s1, set *s2);
-
-bool set_is_equal(set *s1, set *s2);
-
 bool reflexive(relations *rel_arr, set *univerzum);
 
 bool symmetric(relations *rel_arr, set *univerzum);
@@ -856,210 +1116,6 @@ int find_operation(operation *operations, int size, char *name) {
         }
     }
     return -1;
-}
-
-/**
- * Creates a new set.
- * @param capacity The initial capacity of the set.
- * @return The new set.
- */
-set *set_init(int capacity) {
-    set *s = malloc(sizeof(set));
-    s->size = 0;
-    s->capacity = capacity;
-    s->elements = malloc(sizeof(char *) * capacity);
-    return s;
-}
-
-/**
- * Adds an element to the set.
- * @param s The set.
- * @param e The element to add.
- */
-void set_add(set *s, char *e) {
-    if (s->size == s->capacity) {
-        s->capacity *= 2;
-        s->elements = realloc(s->elements, sizeof(char *) * s->capacity);
-    }
-    s->elements[s->size] = e;
-    s->size++;
-}
-
-///**
-// * Adds a row number to the set.
-// * @param s The set.
-// * @param e The element to add.
-// */
-//void set_add_row(set *s, int row) {
-//    s->row = row;
-//}
-
-/**
- * Prints the set.
- * @param s The set.
- */
-void set_print(set *s) {
-    for (int i = 0; i < s->size; i++) {
-        printf("%s\n", s->elements[i]);
-    }
-}
-
-/**
- * Creates list of sets
- * @param list The list of sets.
- */
-void list_init(t_list *list) {
-    list->head = NULL;
-    list->tail = NULL;
-}
-
-/**
- * Adds set to a first position of list of sets
- * @param list The list of sets.
- * @param s The set to add.
- */
-void insert_first(t_list *list, set s) {
-    t_item *new_item;
-    if ((new_item = malloc(sizeof(t_item))) == NULL) {
-        fprintf(stderr, "Error during malloc!\n");
-        return;
-    }
-    new_item->s = s;
-    new_item->next = list->head;
-    list->head = new_item;
-}
-
-/**
- * Writes elements of list
- * @param list The list of sets.
- * @param s The set to add.
- */
-void write_list(const t_list *list) {
-    for (t_item *tmp = list->head; tmp != NULL; tmp = tmp->next) {
-        printf("%d %d", tmp->s.size, tmp->s.capacity);
-    }
-}
-
-/**
- * Checks if the set is empty.
- * @param s The set.
- * @return true if the set is empty, false otherwise.
- */
-bool set_is_empty(set *s) {
-    if (s->size == 0) {
-        return true;
-    }
-    return false;
-}
-
-/**
- * Union of two sets.
- * @param s1 The first set.
- * @param s2 The second set.
- * @return The union of the two sets.
- */
-set *set_union(set *s1, set *s2) {
-    set *s = set_init(s1->capacity + s2->capacity);
-    for (int i = 0; i < s1->size; i++) {
-        set_add(s, s1->elements[i]);
-    }
-    for (int i = 0; i < s2->size; i++) {
-        bool is_in_set = false;
-        for (int j = 0; j < s->size; j++) {
-            if (strcmp(s2->elements[i], s->elements[j]) == 0) {
-                is_in_set = true;
-            }
-        }
-        if (!is_in_set) {
-            set_add(s, s2->elements[i]);
-        }
-    }
-    return s;
-}
-
-/**
- * Intersection of two sets.
- * @param s1 The first set.
- * @param s2 The second set.
- * @return The intersection of the two sets.
- */
-set *set_intersection(set *s1, set *s2) {
-    set *s = set_init(s1->capacity + s2->capacity);
-    for (int i = 0; i < s1->size; i++) {
-        for (int j = 0; j < s2->size; j++) {
-            if (strcmp(s1->elements[i], s2->elements[j]) == 0) {
-                set_add(s, s1->elements[i]);
-            }
-        }
-    }
-    return s;
-}
-
-/**
- * Difference of two sets.
- * @param s1 The first set.
- * @param s2 The second set.
- * @return The difference of the two sets.
- */
-set *set_difference(set *s1, set *s2) {
-    set *s = set_init(s1->capacity + s2->capacity);
-    for (int i = 0; i < s1->size; i++) {
-        bool is_in_set = false;
-        for (int j = 0; j < s2->size; j++) {
-            if (strcmp(s1->elements[i], s2->elements[j]) == 0) {
-                is_in_set = true;
-            }
-        }
-        if (!is_in_set) {
-            set_add(s, s1->elements[i]);
-        }
-    }
-    return s;
-}
-
-/**
- * Checks if the first set is a subset of the second set.
- * @param s1 The first set.
- * @param s2 The second set.
- * @return true if the first set is a subset of the second set, false otherwise.
- */
-bool set_is_subset(set *s1, set *s2) {
-    for (int i = 0; i < s1->size; i++) {
-        bool is_in_set = false;
-        for (int j = 0; j < s2->size; j++) {
-            if (strcmp(s1->elements[i], s2->elements[j]) == 0) {
-                is_in_set = true;
-            }
-        }
-        if (!is_in_set) {
-            return false;
-        }
-    }
-    return true;
-}
-
-/**
- * Checks if the first set is equal to the second set.
- * @param s1 The first set.
- * @param s2 The second set.
- * @return true if the first set is equal to the second set, false otherwise.
- */
-bool set_is_equal(set *s1, set *s2) {
-    if (s1->size != s2->size) {
-        return false;
-    }
-    for (int i = 0; i < s1->size; i++) {
-        bool is_in_set = false;
-        for (int j = 0; j < s2->size; j++) {
-            if (strcmp(s1->elements[i], s2->elements[j]) == 0) {
-                is_in_set = true;
-            }
-        }
-        if (!is_in_set) {
-            return false;
-        }
-    }
-    return true;
 }
 
 /**
