@@ -3,6 +3,7 @@
 #include <malloc.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 /**
  * -----------------------------------------------------------------------------
@@ -350,18 +351,6 @@ void set_add_row(set_t *s, int row);
 
 void set_print(set_t *s);
 
-bool set_is_empty(set_t *s);
-
-set_t *set_union(set_t *s1, set_t *s2);
-
-set_t *set_intersection(set_t *s1, set_t *s2);
-
-set_t *set_difference(set_t *s1, set_t *s2);
-
-bool set_is_subset(set_t *s1, set_t *s2);
-
-bool set_is_equal(set_t *s1, set_t *s2);
-
 /**
  * Creates a new set.
  * @param capacity The initial capacity of the set.
@@ -450,21 +439,113 @@ void set_print(set_t *s) {
 }
 
 /**
+ * -----------------------------------------------------------------------------
+ * SET MODULE [SET VECTOR]
+ * -----------------------------------------------------------------------------
+ */
+
+/**
+ * Set vector type.
+ */
+typedef struct set_vector_t {
+    int size;
+    int capacity;
+    set_t **sets;
+} set_vector_t;
+
+set_vector_t *set_vector_init(int capacity) {
+    if (capacity < 1)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid capacity");
+
+    set_vector_t *sv = malloc(sizeof(set_vector_t));
+
+    if (sv == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
+
+    sv->size = 0;
+    sv->capacity = capacity;
+    sv->sets = malloc(sizeof(set_t *) * capacity);
+
+    if (sv->sets == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
+
+    return sv;
+}
+
+// create a function to add to vector
+void set_vector_add(set_vector_t *sv, set_t *s) {
+    if (sv->size == sv->capacity) {
+        sv->capacity *= 2;
+        sv->sets = realloc(sv->sets, sizeof(set_t *) * sv->capacity);
+
+        if (sv->sets == NULL)
+            print_error(__FILENAME__, __LINE__, __func__, "Realloc failed");
+    }
+
+    sv->sets[sv->size] = s;
+    sv->size++;
+}
+
+
+// create a function to find vector by index property
+set_t *set_vector_find(set_vector_t *sv, int index) {
+    for (int i = 0; i < sv->size; i++) {
+        if (sv->sets[i]->index == index) {
+            return sv->sets[i];
+        }
+    }
+    return NULL;
+}
+
+
+void set_vector_print(set_vector_t *sv) {
+    for (int i = 0; i < sv->size; i++) {
+        set_print(sv->sets[i]);
+    }
+}
+
+/**
+ * -----------------------------------------------------------------------------
+ * SET MODULE [SET MATH]
+ * -----------------------------------------------------------------------------
+ */
+
+bool set_is_empty(int n, ...);
+
+set_t *set_union(int n, ...);
+
+set_t *set_intersection(int n, ...);
+
+set_t *set_difference(set_t *s1, set_t *s2);
+
+bool set_is_subset(set_t *s1, set_t *s2);
+
+bool set_is_equal(set_t *s1, set_t *s2);
+
+
+bool _set_is_empty(set_t *s) {
+    return s->size == 0;
+}
+/**
  * Checks if the set is empty.
  * @param s The set.
  * @return true if the set is empty, false otherwise.
  */
-bool set_is_empty(set_t *s) {
-    return s->size == 0;
+bool set_is_empty(int n, ...) {
+    va_list args;
+    va_start(args, n);
+
+    for (int i = 0; i < n; i++) {
+        set_t *s = va_arg(args, set_t *);
+        if (s->size > 0)
+            return false;
+    }
+
+    va_end(args);
+    return true;
 }
 
-/**
- * Union of two sets.
- * @param s1 The first set.
- * @param s2 The second set.
- * @return The union of the two sets.
- */
-set_t *set_union(set_t *s1, set_t *s2) {
+set_t *_set_union(set_t *s1, set_t *s2) {
     set_t *s = set_init(s1->capacity + s2->capacity);
 
     for (int i = 0; i < s1->size; i++) {
@@ -489,12 +570,29 @@ set_t *set_union(set_t *s1, set_t *s2) {
 }
 
 /**
- * Intersection of two sets.
- * @param s1 The first set.
- * @param s2 The second set.
- * @return The intersection of the two sets.
+ * Returns the union of sets.
+ * @param n The number of sets.
+ * @param ... The sets.
+ * @return The union of the sets.
  */
-set_t *set_intersection(set_t *s1, set_t *s2) {
+set_t *set_union(int n, ...) {
+    va_list sets;
+    va_start(sets, n);
+
+    set_t *s = set_init(1);
+
+    for (int i = 0; i < n; i++) {
+        set_t *s_i = va_arg(sets, set_t *);
+        set_t *s_union = _set_union(s, s_i);
+        s = s_union;
+    }
+
+    va_end(sets);
+
+    return s;
+}
+
+set_t *_set_intersection(set_t *s1, set_t *s2) {
     set_t *s = set_init(s1->capacity + s2->capacity);
 
     for (int i = 0; i < s1->size; i++) {
@@ -504,6 +602,29 @@ set_t *set_intersection(set_t *s1, set_t *s2) {
             }
         }
     }
+
+    return s;
+}
+
+/**
+ * Intersection of two sets.
+ * @param s1 The first set.
+ * @param s2 The second set.
+ * @return The intersection of the two sets.
+ */
+set_t *set_intersection(int n, ...) {
+    va_list sets;
+    va_start(sets, n);
+
+    set_t *s = va_arg(sets, set_t *);
+
+    for (int i = 1; i < n; i++) {
+        set_t *s_i = va_arg(sets, set_t *);
+        set_t *s_intersection = _set_intersection(s, s_i);
+        s = s_intersection;
+    }
+
+    va_end(sets);
 
     return s;
 }
@@ -586,68 +707,6 @@ bool set_is_equal(set_t *s1, set_t *s2) {
 
 /**
  * -----------------------------------------------------------------------------
- * SET MODULE [SET VECTOR]
- * -----------------------------------------------------------------------------
- */
-
-/**
- * Set vector type.
- */
-typedef struct set_vector_t {
-    int size;
-    int capacity;
-    set_t **sets;
-} set_vector_t;
-
-set_vector_t *set_vector_init(int capacity) {
-    if (capacity < 1)
-        print_error(__FILENAME__, __LINE__, __func__, "Invalid capacity");
-
-    set_vector_t *sv = malloc(sizeof(set_vector_t));
-
-    if (sv == NULL)
-        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
-
-    sv->size = 0;
-    sv->capacity = capacity;
-    sv->sets = malloc(sizeof(set_t *) * capacity);
-
-    if (sv->sets == NULL)
-        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
-
-    return sv;
-}
-
-// create a function to add to vector
-void set_vector_add(set_vector_t *sv, set_t *s) {
-    if (sv->size == sv->capacity) {
-        sv->capacity *= 2;
-        sv->sets = realloc(sv->sets, sizeof(set_t *) * sv->capacity);
-
-        if (sv->sets == NULL)
-            print_error(__FILENAME__, __LINE__, __func__, "Realloc failed");
-    }
-
-    sv->sets[sv->size] = s;
-    sv->size++;
-}
-
-set_t *set_vector_get(set_vector_t *sv, int index) {
-    if (index < 0 || index >= sv->size)
-        print_error(__FILENAME__, __LINE__, __func__, "Index out of bounds");
-
-    return sv->sets[index];
-}
-
-void set_vector_print(set_vector_t *sv) {
-    for (int i = 0; i < sv->size; i++) {
-        set_print(sv->sets[i]);
-    }
-}
-
-
-/**
- * -----------------------------------------------------------------------------
  * COMMAND MODULE [COMMAND]
  * -----------------------------------------------------------------------------
  */
@@ -663,19 +722,10 @@ typedef enum {
 } commands;
 
 /**
- * Command operations type
- */
-typedef struct {
-    char *name;
-    void (*function)(char *);
-} command_operation_t;
-
-/**
  * Command type
  */
 typedef struct {
     commands type;
-    command_operation_t *operation;
     vector_t args;
 } command_t;
 
@@ -698,9 +748,8 @@ command_t *parse_command(char *s);
 command_t *init_command() {
     command_t *c = (command_t *) malloc(sizeof(command_t));
 
-    if (c == NULL) {
+    if (c == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
-    }
 
     c->args = *vector_init(1);
     return c;
@@ -815,6 +864,25 @@ command_t *parse_command(char *s) {
     vector_remove(args, 0);
 
     c->args = *args;
+    return c;
+}
+
+// create a function to convert set to command
+command_t *set_to_command(set_t *s) {
+    command_t *c = init_command();
+    vector_t *args = vector_init(1);
+
+    if (s == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Set is NULL");
+
+    c->type = S;
+
+    for (int i = 0; i < s->size; i++) {
+        vector_add(args, s->elements[i]);
+    }
+
+    c->args = *args;
+
     return c;
 }
 
@@ -1096,7 +1164,8 @@ void operation_vector_free(operation_vector_t *ov);
  * @return The initialized operation vector.
  */
 operation_vector_t *operation_vector_init(int capacity) {
-    operation_vector_t *ov = (operation_vector_t *) malloc(sizeof(operation_vector_t));
+    operation_vector_t *ov = (operation_vector_t *) malloc(
+            sizeof(operation_vector_t));
 
     if (ov == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
@@ -1119,7 +1188,9 @@ operation_vector_t *operation_vector_init(int capacity) {
 void operation_vector_add(operation_vector_t *ov, operation o) {
     if (ov->size == ov->capacity) {
         ov->capacity *= 2;
-        ov->operations = (operation **) realloc(ov->operations, sizeof(operation *) * ov->capacity);
+        ov->operations = (operation **) realloc(ov->operations,
+                                                sizeof(operation *) *
+                                                ov->capacity);
 
         if (ov->operations == NULL)
             print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
@@ -1246,10 +1317,6 @@ void command_system_free(command_system_t *cs) {
 /**
  * Definition for relations
  */
-typedef struct {
-    char ***pairs;
-    int count_pairs;
-} relations;
 
 /**
  * Prototypes of functions
