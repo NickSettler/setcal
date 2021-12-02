@@ -5,7 +5,9 @@
 #include <stdlib.h>
 
 /**
+ * -----------------------------------------------------------------------------
  * SYSTEM MODULE
+ * -----------------------------------------------------------------------------
  */
 
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
@@ -32,7 +34,9 @@ void print_error(const char *filename, int line, const char *function,
 }
 
 /**
+ * -----------------------------------------------------------------------------
  * STRING MODULE
+ * -----------------------------------------------------------------------------
  */
 
 char *pad_string(char *str, unsigned int max);
@@ -154,7 +158,9 @@ void remove_newlines(char *str) {
 }
 
 /**
+ * -----------------------------------------------------------------------------
  * VECTOR MODULE
+ * -----------------------------------------------------------------------------
  */
 
 /**
@@ -319,7 +325,9 @@ void vector_free(vector_t *v) {
 }
 
 /**
+ * -----------------------------------------------------------------------------
  * COMMAND MODULE [COMMAND]
+ * -----------------------------------------------------------------------------
  */
 
 /**
@@ -489,7 +497,9 @@ command_t *parse_command(char *s) {
 }
 
 /**
+ * -----------------------------------------------------------------------------
  * COMMAND MODULE [COMMAND VECTOR]
+ * -----------------------------------------------------------------------------
  */
 
 /**
@@ -816,7 +826,7 @@ void rel_table(int **table, relations *rel_arr, set *univerzum) {
         for (int j = 0; j < univerzum->size; j++) {
             if (strcmp(rel_arr->pairs[i][0], univerzum->elements[j]) == 0) {
                 for (int k = 0; k < univerzum->size; k++) {
-                    if (strcmp(rel_arr->pairs[i][1], univerzum->size[k]) ==
+                    if (strcmp(rel_arr->pairs[i][1], univerzum->elements[k]) ==
                         0) {
                         table[j][k] = 1;
                     }
@@ -875,14 +885,14 @@ void set_add(set *s, char *e) {
     s->size++;
 }
 
-/**
- * Adds a row number to the set.
- * @param s The set.
- * @param e The element to add.
- */
-void set_add_row(set *s, int row) {
-    s->row = row;
-}
+///**
+// * Adds a row number to the set.
+// * @param s The set.
+// * @param e The element to add.
+// */
+//void set_add_row(set *s, int row) {
+//    s->row = row;
+//}
 
 /**
  * Prints the set.
