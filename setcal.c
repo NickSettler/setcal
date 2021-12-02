@@ -1158,6 +1158,18 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
         print_error(__FILENAME__, __LINE__, __FUNCTION__,
                     "Invalid command vector");
 
+    command_t *u_command = find_command_by_type(cv, U);
+
+    /**
+     * Commands vector must contain only the following commands: U, S, R, C.
+     */
+    for (int i = 0; i < cv->size; i++) {
+        if (cv->commands[i].type != U && cv->commands[i].type != S &&
+            cv->commands[i].type != R && cv->commands[i].type != C) {
+            return false;
+        }
+    }
+
     /**
      * Command vector must contain only one U command.
      */
@@ -1172,24 +1184,58 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
     }
 
     /**
+     * Universe items length must not be greater than 30.
+     */
+    for (int i = 0; i < u_command->args.size; i++) {
+        printf("%lu\n", strlen(u_command->args.elements[i]));
+        if (strlen(u_command->args.elements[i]) > 30) {
+            return false;
+        }
+    }
+
+
+    /**
      * Universe command can contain only strings.
      */
-    command_t *u_command = find_command_by_type(cv, U);
-
-    printf("%s\n", vector_to_string(&u_command->args, " "));
-
-    if (is_string_only_characters(vector_to_string(&(u_command->args), " ")) == false) {
+    if (is_string_only_characters(
+            vector_to_string(&(u_command->args), " ")) == false) {
         print_error(__FILENAME__, __LINE__, __FUNCTION__,
                     "Invalid command vector");
     }
 
     /**
-     * Commands vector must contain only the following commands: U, S, R, C.
+     * Check if universe does not contain false and true
+     */
+    for (int i = 0; i < u_command->args.size; i++)
+        if (strcmp(u_command->args.elements[i], "false") == 0 ||
+            strcmp(u_command->args.elements[i], "true") == 0) {
+            return false;
+        }
+
+    /**
+     * Check if universe does not contain operations.
+     */
+    for (int i = 0; i < ov->size; i++) {
+        if (vector_contains(&(u_command->args), ov->operations[i]->name) ==
+            true) {
+            print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                        "Invalid command vector");
+        }
+    }
+
+    /**
+     * Check if all sets has items only form universe.
      */
     for (int i = 0; i < cv->size; i++) {
-        if (cv->commands[i].type != U && cv->commands[i].type != S &&
-            cv->commands[i].type != R && cv->commands[i].type != C) {
-            return false;
+        if (cv->commands[i].type == S) {
+            command_t *s_command = &cv->commands[i];
+            for (int j = 0; j < s_command->args.size; j++) {
+                if (vector_contains(&(u_command->args),
+                                    s_command->args.elements[j]) == false) {
+                    print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                                "Invalid command vector");
+                }
+            }
         }
     }
 
