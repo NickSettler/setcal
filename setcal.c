@@ -1000,6 +1000,15 @@ command_t *parse_command(char *s) {
     return c;
 }
 
+command_t bool_to_command(bool b) {
+    command_t *c = init_command();
+
+    c->args= *vector_init(1);
+    vector_add(&c->args, b ? "true" : "false");
+
+    return *c;
+}
+
 // create a function to convert set to command
 command_t *set_to_command(set_t *s) {
     command_t *c = init_command();
@@ -1134,6 +1143,10 @@ bool validate_command_vector(command_vector_t *cv) {
     }
 
     return true;
+}
+
+void attach_command_system(command_vector_t *cv, command_system_t *cs) {
+    cv->system = cs;
 }
 
 /**
@@ -1384,22 +1397,10 @@ command_system_t *command_system_init(char *filename) {
 
     /**
      * Initialize the operation map.
+     * @todo Implement this.
      */
 
-//    cs->operation_vector = operation_vector_init(1);
-//    operation *op = operation_init("union", *set_union);
-//    operation_vector_add(cs->operation_vector, *op);
-//
-//    operation *temp = operation_vector_find(cs->operation_vector, "union");
-//
-////    set_t *s = set_union(2, cs->set_vector->sets[0], cs->set_vector->sets[1]);
-//    set_t *s = temp->f(2, cs->set_vector->sets[0], cs->set_vector->sets[1]);
-//    set_print(s);
-////
-////    printf("%s - %d\n", temp->name, temp->argc);
-//
-////    set_t *s = temp->f(temp_set_vector);
-////    set_print(s);
+
 
     return cs;
 }
@@ -1464,6 +1465,12 @@ void command_system_exec(command_system_t *cs) {
                     set_vector_find(cs->set_vector, first_index),
                     set_vector_find(cs->set_vector, second_index));
             command_vector_replace(cs->cv, *set_to_command(s), i);
+        } else if(strcmp(operation_name, "empty") == 0){
+            int index = atoi(command->args.elements[1]);
+
+            bool is_empty = set_is_empty(1, set_vector_find(cs->set_vector, index));
+
+            command_vector_replace(cs->cv, bool_to_command(is_empty), i);
         }
     }
 }
