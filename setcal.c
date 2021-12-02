@@ -80,7 +80,9 @@ char *pad_string(char *str, unsigned int max) {
 // create a function to check is string contains only characters
 bool is_string_only_characters(char *str) {
     for (unsigned int i = 0; i < strlen(str); i++) {
-        if (isalpha(str[i]) != 1 && isspace(str[i]) != 1) {
+//        printf("%c\n", str[i]);
+//        printf("%d - %d\n", isalpha(str[i]), isspace(str[i]));
+        if (isalpha(str[i]) == 0 && isspace(str[i]) == 0) {
             return false;
         }
     }
@@ -1160,17 +1162,17 @@ bool validate_command_vector(command_vector_t *cv) {
     if (u_count != 1) {
         return false;
     }
+
     /**
      * Universe command can contain only strings.
      */
-
     command_t *u_command = find_command_by_type(cv, U);
 
-    for (int i = 0; i < u_command->args.size; ++i) {
-        if(is_string_only_characters(u_command->args.elements[i])) {
-            print_error(__FILENAME__, __LINE__, __FUNCTION__,
-                        "Invalid command vector");
-        }
+    printf("%s\n", vector_to_string(&u_command->args, " "));
+
+    if (is_string_only_characters(vector_to_string(&(u_command->args), " ")) == false) {
+        print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                    "Invalid command vector");
     }
 
     /**
