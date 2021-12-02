@@ -334,12 +334,15 @@ void vector_free(vector_t *v) {
  * Set type.
  */
 typedef struct set {
+    unsigned int index;
     int size;
     int capacity;
     char **elements;
 } set_t;
 
 set_t *set_init(int capacity);
+
+set_t *set_init_indexed(int index, int capacity);
 
 void set_add(set_t *s, char *e);
 
@@ -370,6 +373,32 @@ set_t *set_init(int capacity) {
     if (s == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
 
+    s->index = 0;
+    s->size = 0;
+    s->capacity = capacity;
+    s->elements = malloc(sizeof(char *) * capacity);
+
+    if (s->elements == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
+
+    return s;
+}
+/**
+ * Creates a new set.
+ * @param index The index of the set.
+ * @param capacity The initial capacity of the set.
+ * @return The new set.
+ */
+set_t *set_init_indexed(int index, int capacity) {
+    if (index < 1)
+        print_error(__FILENAME__, __LINE__, __func__, "Index is negative or zero");
+
+    set_t *s = malloc(sizeof(set_t));
+
+    if (s == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
+
+    s->index = index;
     s->size = 0;
     s->capacity = capacity;
     s->elements = malloc(sizeof(char *) * capacity);
@@ -411,9 +440,11 @@ void set_add(set_t *s, char *e) {
  * @param s The set.
  */
 void set_print(set_t *s) {
+    printf("Set %d: ", s->index);
     for (int i = 0; i < s->size; i++) {
-        printf("%s\n", s->elements[i]);
+        printf("%s ", s->elements[i]);
     }
+    printf("\n");
 }
 
 /**
