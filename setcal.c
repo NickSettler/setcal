@@ -667,7 +667,7 @@ typedef struct {
 /**
  * Prototypes of functions
  */
-void rel_table(int **table, relations *rel_arr, univerzum *univerzum);
+void rel_table(int **table, relations *rel_arr, set *univerzum);
 
 int find_operation(operation *operations, int size, char *name);
 
@@ -697,15 +697,15 @@ bool set_is_subset(set *s1, set *s2);
 
 bool set_is_equal(set *s1, set *s2);
 
-bool reflexive(relations *rel_arr, univerzum *univerzum);
+bool reflexive(relations *rel_arr, set *univerzum);
 
-bool symmetric(relations *rel_arr, univerzum *univerzum);
+bool symmetric(relations *rel_arr, set *univerzum);
 
-bool antisymmetric(relations *rel_arr, univerzum *univerzum);
+bool antisymmetric(relations *rel_arr, set *univerzum);
 
-bool transitive(relations *rel_arr, univerzum *univerzum);
+bool transitive(relations *rel_arr, set *univerzum);
 
-bool function(relations *rel_arr, univerzum *univerzum);
+bool function(relations *rel_arr, set *univerzum);
 
 
 /**
@@ -806,17 +806,17 @@ int main(int argc, char *argv[]) {
 /**
  * table of 0 and 1 for relations
  */
-void rel_table(int **table, relations *rel_arr, univerzum *univerzum) {
-    for (int i = 0; i < univerzum->count; i++) {
-        for (int j = 0; j < univerzum->count; j++) {
+void rel_table(int **table, relations *rel_arr, set *univerzum) {
+    for (int i = 0; i < univerzum->size; i++) {
+        for (int j = 0; j < univerzum->size; j++) {
             table[i][j] = 0;
         }
     }
     for (int i = 0; i < rel_arr->count_pairs; i++) {
-        for (int j = 0; j < univerzum->count; j++) {
-            if (strcmp(rel_arr->pairs[i][0], univerzum->words[j]) == 0) {
-                for (int k = 0; k < univerzum->count; k++) {
-                    if (strcmp(rel_arr->pairs[i][1], univerzum->words[k]) ==
+        for (int j = 0; j < univerzum->size; j++) {
+            if (strcmp(rel_arr->pairs[i][0], univerzum->elements[j]) == 0) {
+                for (int k = 0; k < univerzum->size; k++) {
+                    if (strcmp(rel_arr->pairs[i][1], univerzum->size[k]) ==
                         0) {
                         table[j][k] = 1;
                     }
@@ -824,8 +824,8 @@ void rel_table(int **table, relations *rel_arr, univerzum *univerzum) {
             }
         }
     }
-    for (int i = 0; i < univerzum->count; i++) {
-        for (int j = 0; j < univerzum->count; j++) {
+    for (int i = 0; i < univerzum->size; i++) {
+        for (int j = 0; j < univerzum->size; j++) {
             printf("%d ", table[i][j]);
         }
         printf("\n");
@@ -1058,10 +1058,10 @@ bool set_is_equal(set *s1, set *s2) {
  * @param univerzum The univerzum.
  * @return true if the relation is reflexive, false otherwise.
  */
-bool reflexive(relations *rel_arr, univerzum *univerzum) {
-    int table[univerzum->count][univerzum->count];
+bool reflexive(relations *rel_arr, set *univerzum) {
+    int table[univerzum->size][univerzum->size];
     rel_table(table, rel_arr, univerzum);
-    for (int i = 0; i < univerzum->count; i++) {
+    for (int i = 0; i < univerzum->size; i++) {
         if (table[i][i] == 0) {
             return false;
         }
@@ -1075,11 +1075,11 @@ bool reflexive(relations *rel_arr, univerzum *univerzum) {
  * @param univerzum The univerzum.
  * @return true if the relation is symmetric, false otherwise.
  */
-bool symmetric(relations *rel_arr, univerzum *univerzum) {
-    int table[univerzum->count][univerzum->count];
+bool symmetric(relations *rel_arr, set *univerzum) {
+    int table[univerzum->size][univerzum->size];
     rel_table(table, rel_arr, univerzum);
-    for (int i = 0; i < univerzum->count; i++) {
-        for (int j = 0; j < univerzum->count; j++) {
+    for (int i = 0; i < univerzum->size; i++) {
+        for (int j = 0; j < univerzum->size; j++) {
             if (table[i][j] == 1 && table[j][i] == 0) {
                 return false;
             }
@@ -1094,11 +1094,11 @@ bool symmetric(relations *rel_arr, univerzum *univerzum) {
  * @param univerzum The univerzum.
  * @return true if the relation is antisymmetric, false otherwise.
  */
-bool antisymmetric(relations *rel_arr, univerzum *univerzum) {
-    int table[univerzum->count][univerzum->count];
+bool antisymmetric(relations *rel_arr, set *univerzum) {
+    int table[univerzum->size][univerzum->size];
     rel_table(table, rel_arr, univerzum);
-    for (int i = 0; i < univerzum->count; i++) {
-        for (int j = 0; j < univerzum->count; j++) {
+    for (int i = 0; i < univerzum->size; i++) {
+        for (int j = 0; j < univerzum->size; j++) {
             if (table[i][j] == 1 && table[j][i] == 1 && i != j) {
                 return false;
             }
@@ -1113,12 +1113,12 @@ bool antisymmetric(relations *rel_arr, univerzum *univerzum) {
  * @param univerzum The univerzum.
  * @return true if the relation is transitive, false otherwise.
  */
-bool transitive(relations *rel_arr, univerzum *univerzum) {
-    int table[univerzum->count][univerzum->count];
+bool transitive(relations *rel_arr, set *univerzum) {
+    int table[univerzum->size][univerzum->size];
     rel_table(table, rel_arr, univerzum);
-    for (int i = 0; i < univerzum->count; i++) {
-        for (int j = 0; j < univerzum->count; j++) {
-            for (int k = 0; k < univerzum->count; k++) {
+    for (int i = 0; i < univerzum->size; i++) {
+        for (int j = 0; j < univerzum->size; j++) {
+            for (int k = 0; k < univerzum->size; k++) {
                 if (table[i][j] == 1 && table[j][k] == 1 && table[i][k] == 0) {
                     return false;
                 }
@@ -1134,12 +1134,12 @@ bool transitive(relations *rel_arr, univerzum *univerzum) {
  * @param univerzum The univerzum.
  * @return true if the relation is function, false otherwise.
  */
-bool function(relations *rel_arr, univerzum *univerzum) {
-    int table[univerzum->count][univerzum->count];
+bool function(relations *rel_arr, set *univerzum) {
+    int table[univerzum->size][univerzum->size];
     rel_table(table, rel_arr, univerzum);
-    for (int i = 0; i < univerzum->count; i++) {
+    for (int i = 0; i < univerzum->size; i++) {
         int pocet_relaci = 0;
-        for (int j = 0; j < univerzum->count; j++) {
+        for (int j = 0; j < univerzum->size; j++) {
             if (table[i][j] == 1) {
                 pocet_relaci++;
             }
