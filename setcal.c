@@ -995,6 +995,8 @@ int main(int argc, char *argv[]) {
     command_system_t *cs = command_system_init("test_001.txt");
     command_vector_print(cs->cv);
 
+    command_system_free(cs);
+
 //    FILE *file = fopen(argv[1], "r");
 //    if (file == NULL) {
 //        fprintf(stderr, "Error during opening the file!\n");
