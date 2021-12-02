@@ -1097,6 +1097,11 @@ command_vector_t *parse_file(char *filename) {
  * -----------------------------------------------------------------------------
  */
 
+typedef struct {
+    char ***pairs;
+    int count_pairs;
+} relations;
+
 /**
  * Operation type
  */
@@ -1246,6 +1251,14 @@ typedef struct {
     set_vector_t *set_vector;
 } command_system_t;
 
+command_system_t *command_system_init(char *filename);
+
+void command_system_validate(command_system_t *cs);
+
+void command_system_init_vectors(command_system_t *cs);
+
+void command_system_free(command_system_t *cs);
+
 /**
  * Initializes a command system.
  * @param filename The file name.
@@ -1265,13 +1278,40 @@ command_system_t *command_system_init(char *filename) {
     cs->filename = filename;
     cs->cv = parse_file(filename);
 
+    command_system_validate(cs);
+    command_system_init_vectors(cs);
+
+    /**
+     * Initialize the operation map.
+     */
+
+//    cs->operation_vector = operation_vector_init(1);
+//    operation *op = operation_init("union", *set_union);
+//    operation_vector_add(cs->operation_vector, *op);
+//
+//    operation *temp = operation_vector_find(cs->operation_vector, "union");
+//
+////    set_t *s = set_union(2, cs->set_vector->sets[0], cs->set_vector->sets[1]);
+//    set_t *s = temp->f(2, cs->set_vector->sets[0], cs->set_vector->sets[1]);
+//    set_print(s);
+////
+////    printf("%s - %d\n", temp->name, temp->argc);
+//
+////    set_t *s = temp->f(temp_set_vector);
+////    set_print(s);
+
+    return cs;
+}
+
+void command_system_validate(command_system_t *cs) {
     if (validate_command_vector(cs->cv) == false)
         print_error(__FILENAME__, __LINE__, __func__, "Invalid input");
+}
 
+void command_system_init_vectors(command_system_t *cs) {
     /**
      * Initialize the universe set.
      */
-
     cs->universe = set_init(1);
 
     command_t *universe_command = find_command_by_type(cs->cv, U);
@@ -1281,9 +1321,8 @@ command_system_t *command_system_init(char *filename) {
     }
 
     /**
-     * Initialize the set map.
+     * Initialize the set vector.
      */
-
     cs->set_vector = set_vector_init(1);
 
     for (int i = 0; i < cs->cv->size; i++) {
@@ -1297,15 +1336,35 @@ command_system_t *command_system_init(char *filename) {
             set_vector_add(cs->set_vector, set);
         }
     }
+}
 
-    /**
-     * Initialize the operation map.
-     */
+void command_system_exec(command_system_t *cs) {
+    for (int i = 0; i < cs->cv->size; i++) {
+        command_t *command = &cs->cv->commands[i];
+        if (command->type != C) continue;
 
-    cs->operation_map = operation_map_init("empty", 1, set_is_empty);
-    operation_map_add(cs->operation_map, "union", 2, set_union);
+        char *operation_name = command->args.elements[0];
 
-    return cs;
+        if (strcmp(operation_name, "union") == 0) {
+            int first_index = atoi(command->args.elements[1]);
+            int second_index = atoi(command->args.elements[2]);
+
+            set_t *s = set_union(
+                    2,
+                    set_vector_find(cs->set_vector, first_index),
+                    set_vector_find(cs->set_vector, second_index));
+            command_vector_replace(cs->cv, *set_to_command(s), i);
+        } else if (strcmp(operation_name, "intersection") == 0) {
+            int first_index = atoi(command->args.elements[1]);
+            int second_index = atoi(command->args.elements[2]);
+
+            set_t *s = set_intersection(
+                    2,
+                    set_vector_find(cs->set_vector, first_index),
+                    set_vector_find(cs->set_vector, second_index));
+            command_vector_replace(cs->cv, *set_to_command(s), i);
+        }
+    }
 }
 
 void command_system_free(command_system_t *cs) {
@@ -1344,6 +1403,12 @@ bool function(relations *rel_arr, set_t *univerzum);
  */
 int main(int argc, char *argv[]) {
     command_system_t *cs = command_system_init("test_001.txt");
+    command_vector_print(cs->cv);
+
+    command_system_exec(cs);
+
+    printf("\n");
+
     command_vector_print(cs->cv);
 
     command_system_free(cs);
