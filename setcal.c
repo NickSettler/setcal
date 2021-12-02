@@ -383,6 +383,7 @@ set_t *set_init(int capacity) {
 
     return s;
 }
+
 /**
  * Creates a new set.
  * @param index The index of the set.
@@ -391,7 +392,8 @@ set_t *set_init(int capacity) {
  */
 set_t *set_init_indexed(int index, int capacity) {
     if (index < 1)
-        print_error(__FILENAME__, __LINE__, __func__, "Index is negative or zero");
+        print_error(__FILENAME__, __LINE__, __func__,
+                    "Index is negative or zero");
 
     set_t *s = malloc(sizeof(set_t));
 
@@ -1070,120 +1072,87 @@ void operation_free(operation *o) {
 
 /**
  * -----------------------------------------------------------------------------
- * COMMAND MODULE [OPERATION MAP]
+ * COMMAND MODULE [OPERATION VECTOR]
  * -----------------------------------------------------------------------------
  */
 
-typedef struct operation_map_t operation_map_t;
+typedef struct operation_vector_t {
+    int size;
+    int capacity;
+    operation **operations;
+} operation_vector_t;
 
-typedef struct operation_map_t {
-    const char *name;
-    unsigned int argc;
+operation_vector_t *operation_vector_init(int capacity);
 
-    void (*function)(set_t **argv);
+void operation_vector_add(operation_vector_t *ov, operation o);
 
-    operation_map_t *next;
-};
+operation *operation_vector_find(operation_vector_t *ov, char *name);
 
-operation_map_t *operation_map_init(const char *name, const unsigned int argc,
-                                    void (*function)(set_t **argv)) {
-    if (function == NULL)
-        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
+void operation_vector_free(operation_vector_t *ov);
 
-    operation_map_t *om = (operation_map_t *) malloc(sizeof(operation_map_t));
+/**
+ * Initializes an operation vector.
+ * @param capacity The capacity.
+ * @return The initialized operation vector.
+ */
+operation_vector_t *operation_vector_init(int capacity) {
+    operation_vector_t *ov = (operation_vector_t *) malloc(sizeof(operation_vector_t));
 
-    if (om == NULL)
+    if (ov == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
 
-    om->name = name;
-    om->argc = argc;
-    om->function = function;
-    om->next = NULL;
+    ov->size = 0;
+    ov->capacity = capacity;
+    ov->operations = (operation **) malloc(sizeof(operation *) * capacity);
 
-    return om;
+    if (ov->operations == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
+
+    return ov;
 }
 
-void
-operation_map_add(operation_map_t *om, const char *name,
-                  const unsigned int argc, void (*function)(set_t **argv)) {
-    if (om == NULL)
-        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
+/**
+ * Adds an operation to the operation vector.
+ * @param ov The operation vector.
+ * @param o The operation.
+ */
+void operation_vector_add(operation_vector_t *ov, operation o) {
+    if (ov->size == ov->capacity) {
+        ov->capacity *= 2;
+        ov->operations = (operation **) realloc(ov->operations, sizeof(operation *) * ov->capacity);
 
-    if (function == NULL)
-        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
-
-    operation_map_t *temp = om;
-
-    while (temp->next != NULL) {
-        temp = temp->next;
+        if (ov->operations == NULL)
+            print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
     }
 
-    temp->next = operation_map_init(name, argc, function);
+    ov->operations[ov->size] = &o;
+    ov->size++;
 }
 
-// create a function to get the first element of the map
-operation_map_t *operation_map_get_first(operation_map_t *om) {
-    if (om == NULL)
-        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
-
-    return om;
-}
-
-// create a function to get the last element of the map
-operation_map_t *operation_map_get_last(operation_map_t *om) {
-    if (om == NULL)
-        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
-
-    operation_map_t *temp = om;
-
-    while (temp->next != NULL) {
-        temp = temp->next;
+/**
+ * Gets an operation from the operation vector.
+ * @param ov The operation vector.
+ * @param name The name.
+ * @return The operation.
+ */
+operation *operation_vector_find(operation_vector_t *ov, char *name) {
+    for (int i = 0; i < ov->size; i++) {
+        if (strcmp(ov->operations[i]->name, name) == 0)
+            return ov->operations[i];
     }
-
-    return temp;
-}
-
-// create a function to get size of the map
-int operation_map_size(operation_map_t *om) {
-    if (om == NULL)
-        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
-
-    int size = 0;
-    operation_map_t *temp = om;
-
-    while (temp != NULL) {
-        size++;
-        temp = temp->next;
-    }
-
-    return size;
-}
-
-operation_map_t *find_operation(char *name, operation_map_t *om) {
-    if (om == NULL)
-        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
-
-    while (om != NULL) {
-        if (strcmp(om->name, name) == 0)
-            return om;
-        om = om->next;
-    }
-
     return NULL;
 }
 
-// create a function to free the map
-void operation_map_free(operation_map_t *om) {
-    if (om == NULL)
+/**
+ * Frees an operation vector.
+ * @param ov The operation vector.
+ */
+void operation_vector_free(operation_vector_t *ov) {
+    if (ov->operations == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
 
-    operation_map_t *temp = om;
-
-    while (temp != NULL) {
-        om = om->next;
-        free(temp);
-        temp = om;
-    }
+    free(ov->operations);
+    free(ov);
 }
 
 
@@ -1199,7 +1168,7 @@ void operation_map_free(operation_map_t *om) {
 typedef struct {
     char *filename;
     command_vector_t *cv;
-    operation_map_t *operation_map;
+    operation_vector_t *operation_vector;
     set_t *universe;
     set_vector_t *set_vector;
 } command_system_t;
