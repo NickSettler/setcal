@@ -900,6 +900,8 @@ typedef struct command_system_t {
 
 command_t *init_command();
 
+command_t *init_command_with_type(commands type);
+
 void set_command_args(command_t *c, vector_t *args);
 
 void add_command_arg(command_t *c, char *arg);
@@ -923,6 +925,18 @@ command_t *init_command() {
     c->args = *vector_init(1);
     return c;
 }
+
+/**
+ * Initializes a command with a type.
+ * @param type The type of the command.
+ * @return The initialized command.
+ */
+command_t *init_command_with_type(commands type) {
+    command_t *c = init_command();
+    c->type = type;
+    return c;
+}
+
 
 /**
  * Sets the command arguments.
