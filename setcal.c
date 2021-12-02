@@ -813,7 +813,24 @@ typedef enum {
     S = 'S',
     R = 'R',
     C = 'C',
+    N = 'N',
 } commands;
+
+/**
+ * Operation type
+ */
+typedef struct {
+    char *name;
+    int argc;
+
+    void *(*f)(int n, ...);
+} operation;
+
+typedef struct operation_vector_t {
+    int size;
+    int capacity;
+    operation **operations;
+} operation_vector_t;
 
 /**
  * Command type
@@ -822,6 +839,26 @@ typedef struct {
     commands type;
     vector_t args;
 } command_t;
+
+typedef struct command_system_t command_system_t;
+/**
+ * Command vector type
+ */
+typedef struct {
+    int size;
+    int capacity;
+    command_t *commands;
+    command_system_t *system;
+} command_vector_t;
+
+
+typedef struct command_system_t {
+    char *filename;
+    command_vector_t *cv;
+    operation_vector_t *operation_vector;
+    set_t *universe;
+    set_vector_t *set_vector;
+};
 
 command_t *init_command();
 
@@ -893,6 +930,8 @@ void print_command(command_t *c) {
             break;
         case C:
             printf("C ");
+            break;
+        case N:
             break;
     }
     for (int i = 0; i < c->args.size; i++) {
@@ -985,15 +1024,6 @@ command_t *set_to_command(set_t *s) {
  * COMMAND MODULE [COMMAND VECTOR]
  * -----------------------------------------------------------------------------
  */
-
-/**
- * Command vector type
- */
-typedef struct {
-    int size;
-    int capacity;
-    command_t *commands;
-} command_vector_t;
 
 command_vector_t *command_vector_init(int capacity);
 
@@ -1197,16 +1227,6 @@ typedef struct {
 } relations;
 
 /**
- * Operation type
- */
-typedef struct {
-    char *name;
-    int argc;
-
-    void *(*f)(int n, ...);
-} operation;
-
-/**
  * Initializes an operation.
  * @param name The name.
  * @param pointer The pointer.
@@ -1244,12 +1264,6 @@ void operation_free(operation *o) {
  * COMMAND MODULE [OPERATION VECTOR]
  * -----------------------------------------------------------------------------
  */
-
-typedef struct operation_vector_t {
-    int size;
-    int capacity;
-    operation **operations;
-} operation_vector_t;
 
 operation_vector_t *operation_vector_init(int capacity);
 
@@ -1337,13 +1351,6 @@ void operation_vector_free(operation_vector_t *ov) {
 /**
  * Command system type.
  */
-typedef struct {
-    char *filename;
-    command_vector_t *cv;
-    operation_vector_t *operation_vector;
-    set_t *universe;
-    set_vector_t *set_vector;
-} command_system_t;
 
 command_system_t *command_system_init(char *filename);
 
