@@ -800,6 +800,8 @@ void command_vector_add(command_vector_t *cv, command_t c);
 
 void command_vector_replace(command_vector_t *cv, command_t c, int index);
 
+bool validate_command_vector(command_vector_t *cv);
+
 void command_vector_print(command_vector_t *cv);
 
 void command_vector_free(command_vector_t *cv);
@@ -858,6 +860,44 @@ void command_vector_replace(command_vector_t *cv, command_t c, int index) {
                     "Index out of bounds");
 
     cv->commands[index] = c;
+}
+
+/**
+ * Validate command vector.
+ * @param cv The command vector.
+ * @return true if valid, false otherwise.
+ */
+bool validate_command_vector(command_vector_t *cv) {
+    if (cv == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Command vector is NULL");
+
+    if (cv->size == 0)
+        print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                    "Invalid command vector");
+
+    /**
+     * Command vector must contain only one U command.
+     */
+    int u_count = 0;
+    for (int i = 0; i < cv->size; i++) {
+        if (cv->commands[i].type == U) {
+            u_count++;
+        }
+    }
+    if (u_count != 1) {
+        return false;
+    }
+
+    /**
+     * Commands vector must contain only the following commands: U, S, R, C.
+     */
+    for (int i = 0; i < cv->size; i++) {
+        if (cv->commands[i].type != U && cv->commands[i].type != S &&
+            cv->commands[i].type != R && cv->commands[i].type != C) {
+            return false;
+        }
+    }
+
 }
 
 /**
