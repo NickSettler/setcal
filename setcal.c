@@ -839,6 +839,10 @@ void command_vector_replace(command_vector_t *cv, command_t c, int index);
 
 bool validate_command_vector(command_vector_t *cv);
 
+command_t *find_command_by_type(command_vector_t *cv, commands type);
+
+command_t *find_command_by_type_all(command_vector_t *cv, commands type);
+
 void command_vector_print(command_vector_t *cv);
 
 void command_vector_free(command_vector_t *cv);
@@ -935,6 +939,39 @@ bool validate_command_vector(command_vector_t *cv) {
         }
     }
 
+    return true;
+}
+
+/**
+ * Finds a command in the command vector.
+ * @param cv The command vector.
+ * @param type The command type.
+ * @return The command or NULL if not found.
+ */
+command_t *find_command_by_type(command_vector_t *cv, commands type) {
+    for (int i = 0; i < cv->size; i++) {
+        if (cv->commands[i].type == type) {
+            return &cv->commands[i];
+        }
+    }
+    return NULL;
+}
+
+// create a function to find all commands of a certain type
+command_t *find_command_by_type_all(command_vector_t *cv, commands type) {
+    command_t *commands = (command_t *) malloc(sizeof(command_t) * cv->size);
+
+    if (commands == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
+
+    int count = 0;
+    for (int i = 0; i < cv->size; i++) {
+        if (cv->commands[i].type == type) {
+            commands[count] = cv->commands[i];
+            count++;
+        }
+    }
+    return commands;
 }
 
 /**
