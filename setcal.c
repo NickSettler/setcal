@@ -1497,7 +1497,7 @@ void command_system_exec(command_system_t *cs) {
                     set_vector_find(cs->set_vector, first_index),
                     set_vector_find(cs->set_vector, second_index));
             command_vector_replace(cs->cv, *set_to_command(s), i);
-        } else if (strcmp(operation_name, "intersection") == 0) {
+        } else if (strcmp(operation_name, "intersect") == 0) {
             int first_index = atoi(command->args.elements[1]);
             int second_index = atoi(command->args.elements[2]);
 
@@ -1506,12 +1506,23 @@ void command_system_exec(command_system_t *cs) {
                     set_vector_find(cs->set_vector, first_index),
                     set_vector_find(cs->set_vector, second_index));
             command_vector_replace(cs->cv, *set_to_command(s), i);
-        } else if(strcmp(operation_name, "empty") == 0){
+        } else if (strcmp(operation_name, "empty") == 0) {
             int index = atoi(command->args.elements[1]);
 
-            bool is_empty = set_is_empty(1, set_vector_find(cs->set_vector, index));
+            bool is_empty = set_is_empty(1, set_vector_find(cs->set_vector,
+                                                            index));
 
             command_vector_replace(cs->cv, bool_to_command(is_empty), i);
+        } else if (strcmp(operation_name, "minus") == 0) {
+            int first_index = atoi(command->args.elements[1]);
+            int second_index = atoi(command->args.elements[2]);
+
+            set_t *s = set_diff(
+                    2,
+                    set_vector_find(cs->set_vector, first_index),
+                    set_vector_find(cs->set_vector, second_index));
+
+            command_vector_replace(cs->cv, *set_to_command(s), i);
         }
     }
 }
