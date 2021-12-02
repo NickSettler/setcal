@@ -1187,12 +1187,10 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
      * Universe items length must not be greater than 30.
      */
     for (int i = 0; i < u_command->args.size; i++) {
-        printf("%lu\n", strlen(u_command->args.elements[i]));
         if (strlen(u_command->args.elements[i]) > 30) {
             return false;
         }
     }
-
 
     /**
      * Universe command can contain only strings.
@@ -1263,7 +1261,8 @@ command_t *find_command_by_type(command_vector_t *cv, commands type) {
 
 // create a function to find all commands of a certain type
 command_t *find_command_by_type_all(command_vector_t *cv, commands type) {
-    command_t *commands = (command_t *) malloc(sizeof(command_t) * cv->size);
+    command_t *commands = (command_t *) malloc(
+            sizeof(command_t) * cv->size);
 
     if (commands == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
@@ -1294,7 +1293,8 @@ void command_vector_print(command_vector_t *cv) {
  */
 void command_vector_free(command_vector_t *cv) {
     if (cv->commands == NULL)
-        print_error(__FILENAME__, __LINE__, __FUNCTION__, "Invalid pointer");
+        print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                    "Invalid pointer");
 
     free(cv->commands);
     free(cv);
@@ -1578,7 +1578,8 @@ void command_system_init_vectors(command_system_t *cs) {
 
     for (int i = 0; i < cs->cv->size; i++) {
         if (cs->cv->commands[i].type == S) {
-            set_t *set = set_init_indexed(i + 1, cs->cv->commands[i].args.size);
+            set_t *set = set_init_indexed(i + 1,
+                                          cs->cv->commands[i].args.size);
 
             for (int j = 0; j < cs->cv->commands[i].args.size; j++) {
                 set_add(set, cs->cv->commands[i].args.elements[j]);
@@ -1742,7 +1743,8 @@ void rel_table(int **table, relations *rel_arr, set_t *univerzum) {
         for (int j = 0; j < univerzum->size; j++) {
             if (strcmp(rel_arr->pairs[i][0], univerzum->elements[j]) == 0) {
                 for (int k = 0; k < univerzum->size; k++) {
-                    if (strcmp(rel_arr->pairs[i][1], univerzum->elements[k]) ==
+                    if (strcmp(rel_arr->pairs[i][1],
+                               univerzum->elements[k]) ==
                         0) {
                         table[j][k] = 1;
                     }
@@ -1825,7 +1827,8 @@ bool transitive(relations *rel_arr, set_t *univerzum) {
     for (int i = 0; i < univerzum->size; i++) {
         for (int j = 0; j < univerzum->size; j++) {
             for (int k = 0; k < univerzum->size; k++) {
-                if (table[i][j] == 1 && table[j][k] == 1 && table[i][k] == 0) {
+                if (table[i][j] == 1 && table[j][k] == 1 &&
+                    table[i][k] == 0) {
                     return false;
                 }
             }
