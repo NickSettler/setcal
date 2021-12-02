@@ -326,7 +326,7 @@ void vector_free(vector_t *v) {
 
 /**
  * -----------------------------------------------------------------------------
- * SET MODULE
+ * SET MODULE [SET]
  * -----------------------------------------------------------------------------
  */
 
@@ -553,6 +553,62 @@ bool set_is_equal(set_t *s1, set_t *s2) {
 
 /**
  * -----------------------------------------------------------------------------
+ * SET MODULE [SET MAP]
+ * -----------------------------------------------------------------------------
+ */
+
+/**
+ * Set map type.
+ */
+typedef struct set_map_t set_map_t;
+typedef struct set_map_t {
+    int index;
+    set_t *s;
+    set_map_t *next;
+};
+
+// create a function to init set_t map
+set_map_t *set_map_init(set_t *s) {
+    set_map_t *sm = (set_map_t *) malloc(sizeof(set_map_t));
+
+    if (sm == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
+
+    sm->index = 0;
+    sm->s = s;
+    sm->next = NULL;
+
+    printf("%s\n", "Set map initialized");
+
+    return sm;
+}
+
+// create a function to add to set_t map. check if map is inited
+void set_map_add(set_map_t *sm, set_t *s) {
+    if (sm == NULL)
+        print_error(__FILENAME__, __LINE__, __func__,
+                    "Set map is not initialized");
+
+    set_map_t *new_sm = set_map_init(s);
+    new_sm->index = sm->index + 1;
+    new_sm->next = sm->next;
+    sm->next = new_sm;
+}
+
+void set_map_print(set_map_t *sm) {
+    if (sm == NULL) {
+        printf("\n");
+        return;
+    }
+
+    printf("%d: ", sm->index);
+    set_print(sm->s);
+    set_map_print(sm->next);
+}
+
+
+/**
+ * -----------------------------------------------------------------------------
  * COMMAND MODULE [COMMAND]
  * -----------------------------------------------------------------------------
  */
@@ -756,7 +812,8 @@ command_vector_t *parse_file(char *filename);
  * @return The initialized command vector.
  */
 command_vector_t *command_vector_init(int capacity) {
-    command_vector_t *cv = (command_vector_t *) malloc(sizeof(command_vector_t));
+    command_vector_t *cv = (command_vector_t *) malloc(
+            sizeof(command_vector_t));
 
     if (cv == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
