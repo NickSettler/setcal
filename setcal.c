@@ -510,26 +510,43 @@ void set_vector_print(set_vector_t *sv) {
  * -----------------------------------------------------------------------------
  */
 
+bool _set_is_empty(set_t *s);
+
 bool set_is_empty(int n, ...);
+
+set_t *_set_union(set_t *s1, set_t *s2);
 
 set_t *set_union(int n, ...);
 
+set_t *_set_intersection(set_t *s1, set_t *s2);
+
 set_t *set_intersection(int n, ...);
 
-set_t *set_difference(set_t *s1, set_t *s2);
+set_t *_set_diff(set_t *s1, set_t *s2);
 
-bool set_is_subset(set_t *s1, set_t *s2);
+set_t *set_diff(int n, ...);
 
-bool set_is_equal(set_t *s1, set_t *s2);
+bool _set_is_subset(set_t *s1, set_t *s2);
 
+bool set_is_subset(int n, ...);
 
+bool _set_is_equal(set_t *s1, set_t *s2);
+
+bool set_is_equal(int n, ...);
+
+/**
+ * Checks if a set is empty.
+ * @param s The set.
+ * @return True if the set is empty, false otherwise.
+ */
 bool _set_is_empty(set_t *s) {
     return s->size == 0;
 }
 /**
- * Checks if the set is empty.
- * @param s The set.
- * @return true if the set is empty, false otherwise.
+ * Checks if a set is empty.
+ * @param n The number of sets.
+ * @param ... The sets.
+ * @return True if the set is empty, false otherwise.
  */
 bool set_is_empty(int n, ...) {
     va_list args;
@@ -545,6 +562,12 @@ bool set_is_empty(int n, ...) {
     return true;
 }
 
+/**
+ * Returns the union of two sets.
+ * @param s1 The first set.
+ * @param s2 The second set.
+ * @return The union of the two sets.
+ */
 set_t *_set_union(set_t *s1, set_t *s2) {
     set_t *s = set_init(s1->capacity + s2->capacity);
 
@@ -592,6 +615,12 @@ set_t *set_union(int n, ...) {
     return s;
 }
 
+/**
+ * Returns the intersection of sets.
+ * @param s1 The first set.
+ * @param s2 The second set.
+ * @return The intersection of the sets.
+ */
 set_t *_set_intersection(set_t *s1, set_t *s2) {
     set_t *s = set_init(s1->capacity + s2->capacity);
 
@@ -607,10 +636,10 @@ set_t *_set_intersection(set_t *s1, set_t *s2) {
 }
 
 /**
- * Intersection of two sets.
- * @param s1 The first set.
- * @param s2 The second set.
- * @return The intersection of the two sets.
+ * Returns the intersection of sets.
+ * @param n The number of sets.
+ * @param ... The sets.
+ * @return The intersection of the sets.
  */
 set_t *set_intersection(int n, ...) {
     va_list sets;
@@ -635,7 +664,7 @@ set_t *set_intersection(int n, ...) {
  * @param s2 The second set.
  * @return The difference of the two sets.
  */
-set_t *set_difference(set_t *s1, set_t *s2) {
+set_t *_set_diff(set_t *s1, set_t *s2) {
     set_t *s = set_init(s1->capacity + s2->capacity);
 
     for (int i = 0; i < s1->size; i++) {
@@ -651,6 +680,30 @@ set_t *set_difference(set_t *s1, set_t *s2) {
             set_add(s, s1->elements[i]);
         }
     }
+
+    return s;
+}
+
+/**
+ * Difference of sets.
+ * @param n The number of sets.
+ * @param ... The sets.
+ * @return The difference of the sets.
+ */
+set_t *set_diff(int n, ...) {
+    va_list sets;
+    va_start(sets, n);
+
+    set_t *s = va_arg(sets, set_t *);
+
+    for (int i = 1; i < n; i++) {
+        set_t *s_i = va_arg(sets, set_t *);
+        set_t *s_diff = _set_diff(s, s_i);
+        s = s_diff;
+    }
+
+    va_end(sets);
+
     return s;
 }
 
@@ -660,7 +713,7 @@ set_t *set_difference(set_t *s1, set_t *s2) {
  * @param s2 The second set.
  * @return true if the first set is a subset of the second set, false otherwise.
  */
-bool set_is_subset(set_t *s1, set_t *s2) {
+bool _set_is_subset(set_t *s1, set_t *s2) {
     for (int i = 0; i < s1->size; i++) {
 
         bool is_in_set = false;
@@ -675,7 +728,28 @@ bool set_is_subset(set_t *s1, set_t *s2) {
             return false;
         }
     }
+
     return true;
+}
+
+/**
+ * Checks if the first set is a subset of the second set.
+ * @param n The number of sets.
+ * @param ... The sets.
+ * @return true if the first set is a subset of the second set, false otherwise.
+ */
+bool set_is_subset(int n, ...) {
+    va_list sets;
+    va_start(sets, n);
+
+    set_t *s1 = va_arg(sets, set_t *);
+    set_t *s2 = va_arg(sets, set_t *);
+
+    bool is_subset = _set_is_subset(s1, s2);
+
+    va_end(sets);
+
+    return is_subset;
 }
 
 /**
@@ -684,7 +758,7 @@ bool set_is_subset(set_t *s1, set_t *s2) {
  * @param s2 The second set.
  * @return true if the first set is equal to the second set, false otherwise.
  */
-bool set_is_equal(set_t *s1, set_t *s2) {
+bool _set_is_equal(set_t *s1, set_t *s2) {
     if (s1->size != s2->size) {
         return false;
     }
@@ -703,6 +777,26 @@ bool set_is_equal(set_t *s1, set_t *s2) {
         }
     }
     return true;
+}
+
+/**
+ * Checks if the first set is equal to the second set.
+ * @param n The number of sets.
+ * @param ... The sets.
+ * @return true if the first set is equal to the second set, false otherwise.
+ */
+bool set_is_equal(int n, ...) {
+    va_list sets;
+    va_start(sets, n);
+
+    set_t *s1 = va_arg(sets, set_t *);
+    set_t *s2 = va_arg(sets, set_t *);
+
+    bool is_equal = _set_is_equal(s1, s2);
+
+    va_end(sets);
+
+    return is_equal;
 }
 
 /**
