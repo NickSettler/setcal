@@ -1077,14 +1077,16 @@ void operation_free(operation *o) {
 typedef struct operation_map_t operation_map_t;
 
 typedef struct operation_map_t {
-    char *name;
+    const char *name;
+    unsigned int argc;
 
-    void (*function)(char *);
+    void (*function)(set_t **argv);
 
     operation_map_t *next;
 };
 
-operation_map_t *operation_map_init(char *name, void (*function)(char *)) {
+operation_map_t *operation_map_init(const char *name, const unsigned int argc,
+                                    void (*function)(set_t **argv)) {
     if (function == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
 
@@ -1094,6 +1096,7 @@ operation_map_t *operation_map_init(char *name, void (*function)(char *)) {
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
 
     om->name = name;
+    om->argc = argc;
     om->function = function;
     om->next = NULL;
 
@@ -1101,7 +1104,8 @@ operation_map_t *operation_map_init(char *name, void (*function)(char *)) {
 }
 
 void
-operation_map_add(operation_map_t *om, char *name, void (*function)(char *)) {
+operation_map_add(operation_map_t *om, const char *name,
+                  const unsigned int argc, void (*function)(set_t **argv)) {
     if (om == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
 
@@ -1114,7 +1118,7 @@ operation_map_add(operation_map_t *om, char *name, void (*function)(char *)) {
         temp = temp->next;
     }
 
-    temp->next = operation_map_init(name, function);
+    temp->next = operation_map_init(name, argc, function);
 }
 
 // create a function to get the first element of the map
@@ -1196,7 +1200,8 @@ typedef struct {
     char *filename;
     command_vector_t *cv;
     operation_map_t *operation_map;
-    set_t universe;
+    set_t *universe;
+    set_vector_t *set_vector;
 } command_system_t;
 
 /**
@@ -1208,11 +1213,55 @@ command_system_t *command_system_init(char *filename) {
     command_system_t *cs = (command_system_t *) malloc(
             sizeof(command_system_t));
 
+    /**
+     * Initialize the command vector from file.
+     */
+
     if (cs == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
 
     cs->filename = filename;
     cs->cv = parse_file(filename);
+
+    if (validate_command_vector(cs->cv) == false)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid input");
+
+    /**
+     * Initialize the universe set.
+     */
+
+    cs->universe = set_init(1);
+
+    command_t *universe_command = find_command_by_type(cs->cv, U);
+
+    for (int i = 0; i < universe_command->args.size; i++) {
+        set_add(cs->universe, universe_command->args.elements[i]);
+    }
+
+    /**
+     * Initialize the set map.
+     */
+
+    cs->set_vector = set_vector_init(1);
+
+    for (int i = 0; i < cs->cv->size; i++) {
+        if (cs->cv->commands[i].type == S) {
+            set_t *set = set_init_indexed(i + 1, cs->cv->commands[i].args.size);
+
+            for (int j = 0; j < cs->cv->commands[i].args.size; j++) {
+                set_add(set, cs->cv->commands[i].args.elements[j]);
+            }
+
+            set_vector_add(cs->set_vector, set);
+        }
+    }
+
+    /**
+     * Initialize the operation map.
+     */
+
+    cs->operation_map = operation_map_init("empty", 1, set_is_empty);
+    operation_map_add(cs->operation_map, "union", 2, set_union);
 
     return cs;
 }
