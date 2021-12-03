@@ -517,7 +517,7 @@ set_vector_t *set_vector_init(int capacity) {
 }
 
 // create a function to add to vector
-void set_vector_add(set_vector_t *sv, set_t *s) {
+void set_vector_add(set_vector_t *sv, set_t *s, int index) {
     if (sv->size == sv->capacity) {
         sv->capacity *= 2;
         sv->sets = realloc(sv->sets, sizeof(set_t *) * sv->capacity);
@@ -527,6 +527,8 @@ void set_vector_add(set_vector_t *sv, set_t *s) {
     }
 
     sv->sets[sv->size] = s;
+    sv->sets[sv->size]->index = sv->sets[sv->size]->index
+                                ? sv->sets[sv->size]->index : index;
     sv->size++;
 }
 
