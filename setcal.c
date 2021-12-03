@@ -1108,7 +1108,8 @@ command_t *find_command_by_type(command_vector_t *cv, commands type);
 
 command_vector_t *find_command_by_type_all(command_vector_t *cv, commands type);
 
-command_vector_t *command_vector_slice(command_vector_t *cv, int start, int end);
+command_vector_t *
+command_vector_slice(command_vector_t *cv, int start, int end);
 
 bool command_vector_contains_type(command_vector_t *cv, commands type);
 
@@ -1200,6 +1201,51 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
                         "File has unknown command");
         }
     }
+
+    /**
+     * Commands must be in order: U, S/R, C
+     */
+    for (int i = 0; i < cv->size; i++) {
+        if (cv->commands[i].type == U) {
+            if (i != 0) {
+                print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                            "U command must be the first command");
+            }
+        } else if (cv->commands[i].type == S || cv->commands[i].type == R) {
+            if (i == 0) {
+                print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                            "S command must be after U command");
+            } else {
+                command_vector_t *commands_before = command_vector_slice(cv, 0,
+                                                                         i);
+                command_vector_t *commands_after = command_vector_slice(cv, i,
+                                                                        cv->size - 1);
+
+                if (command_vector_contains_type(commands_before, C) ||
+                        command_vector_contains_type(commands_after, U)) {
+                    print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                                "S and R commands must be after U command and before C commands");
+                }
+            }
+        } else if (cv->commands[i].type == C) {
+            if (i == 0) {
+                print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                            "C command must be after U command");
+            } else {
+                command_vector_t *commands_after = command_vector_slice(cv, i,
+                                                                        cv->size - 1);
+                if (command_vector_contains_type(commands_after, U) ||
+                    command_vector_contains_type(commands_after, S) ||
+                    command_vector_contains_type(commands_after, R)) {
+                    print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                                "C command must be after U, S and R commands. No other commands cannot be after C");
+                }
+            }
+        }
+    }
+
+
+
 
     /**
      * Commands must contain at least two command
@@ -1414,7 +1460,13 @@ find_command_by_type_all(command_vector_t *cv, commands type) {
 }
 
 
-command_vector_t *command_vector_slice(command_vector_t *cv, int start, int end){
+command_vector_t *
+command_vector_slice(command_vector_t *cv, int start, int end) {
+    if (start < 0 || end > cv->size || start > end) {
+        print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                    "Invalid start or end");
+    }
+
     command_vector_t *commands = command_vector_init(1);
 
     for (int i = start; i < end; i++) {
@@ -1430,7 +1482,7 @@ command_vector_t *command_vector_slice(command_vector_t *cv, int start, int end)
  * @param type The command type.
  * @return True if there is a command with the given type, false otherwise.
  */
-bool command_vector_contains_type(command_vector_t *cv, commands type){
+bool command_vector_contains_type(command_vector_t *cv, commands type) {
     for (int i = 0; i < cv->size; i++) {
         if (cv->commands[i].type == type) {
             return true;
