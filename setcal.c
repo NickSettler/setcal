@@ -1105,6 +1105,8 @@ void attach_command_system(command_vector_t *cv, command_system_t *cs);
 
 vector_t *get_unique_command_types(command_vector_t *cv);
 
+command_t *get_command_by_index(command_vector_t *cv, int index);
+
 command_t *find_command_by_type(command_vector_t *cv, commands type);
 
 command_vector_t *find_command_by_type_all(command_vector_t *cv, commands type);
@@ -1430,6 +1432,21 @@ vector_t *get_unique_command_types(command_vector_t *cv) {
     }
 
     return unique_command_types;
+}
+
+/**
+ * Gets command by index from the given command vector.
+ * @param cv Command vector.
+ * @param index Index of the command.
+ * @return Command.
+ */
+command_t *get_command_by_index(command_vector_t *cv, int index) {
+    if (index < 0 || index >= cv->size) {
+        print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                    "Index out of bounds");
+    }
+
+    return &cv->commands[index];
 }
 
 /**
