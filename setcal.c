@@ -974,18 +974,23 @@ void add_command_arg(command_t *c, char *arg) {
 void print_command(command_t *c) {
     switch (c->type) {
         case U:
-            printf("U ");
+            printf("U");
             break;
         case S:
-            printf("S ");
+            printf("S");
             break;
         case R:
-            printf("R ");
+            printf("R");
             break;
         case C:
-            printf("C ");
+            printf("C");
             break;
     }
+
+    if (c->args.size > 0 && c->type != 0) {
+        printf(" ");
+    }
+
     for (int i = 0; i < c->args.size; i++) {
         printf(i < c->args.size - 1 ? "%s " : "%s",
                (char *) c->args.elements[i]);
