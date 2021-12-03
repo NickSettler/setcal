@@ -1240,6 +1240,19 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
     }
 
     /**
+     * Check if there are no repeats in the universe
+     */
+    for (int i = 0; i < u_command->args.size; i++) {
+        for (int j = i + 1; j < u_command->args.size; j++) {
+            if (strcmp(u_command->args.elements[i],
+                       u_command->args.elements[j]) == 0) {
+                print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                            "Universe contains repeating elements");
+            }
+        }
+    }
+
+    /**
      * Check if all sets has items only form universe.
      */
     for (int i = 0; i < cv->size; i++) {
@@ -1254,6 +1267,24 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
             }
         }
     }
+
+    /**
+     * Check if there are not repeats in S commands
+     */
+    command_vector_t *s_commands = find_command_by_type_all(cv, S);
+    for (int i = 0; i < s_commands->size; i++) {
+        command_t *s_command = &s_commands->commands[i];
+        for (int j = 0; j < s_command->args.size; j++) {
+            for (int k = j + 1; k < s_command->args.size; k++) {
+                if (strcmp(s_command->args.elements[j],
+                           s_command->args.elements[k]) == 0) {
+                    print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                                "Set contains repeating elements");
+                }
+            }
+        }
+    }
+
 
     return true;
 }
