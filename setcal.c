@@ -1652,6 +1652,14 @@ void operation_vector_add(operation_vector_t *ov, operation *o);
 
 operation *operation_vector_find(operation_vector_t *ov, char *name);
 
+operation_vector_t *operation_vector_find_all(operation_vector_t *ov,
+                                              char *name);
+
+bool operation_vector_has(operation_vector_t *ov, char *name);
+
+bool operation_vector_has_name_type(operation_vector_t *ov, char *name,
+                                    commands type);
+
 bool operation_vector_contains(operation_vector_t *ov, char *name);
 
 void operation_vector_free(operation_vector_t *ov);
@@ -1713,6 +1721,66 @@ operation *operation_vector_find(operation_vector_t *ov, char *name) {
             return ov->operations[i];
     }
     return NULL;
+}
+
+/**
+ * Gets all operations from the operation vector by name.
+ * @param ov The operation vector.
+ * @param name The name.
+ * @return The operations.
+ */
+operation_vector_t *
+operation_vector_find_all(operation_vector_t *ov, char *name) {
+    operation_vector_t *ov_array = operation_vector_init(1);
+
+    for (int i = 0; i < ov->size; i++) {
+        if (strcmp(ov->operations[i]->name, name) == 0) {
+            operation_vector_add(ov_array, ov->operations[i]);
+        }
+    }
+
+    return ov_array;
+}
+
+/**
+ * Checks if the operation vector contains an operation with the given name.
+ * @param ov The operation vector.
+ * @param name The name.
+ * @return True if the operation vector contains an operation with the given
+ */
+bool operation_vector_has(operation_vector_t *ov, char *name) {
+    return operation_vector_find(ov, name) != NULL;
+}
+
+/**
+ * Checks if the operation vector contains an operation with the given name and type.
+ * @param ov The operation vector.
+ * @param name The name.
+ * @param type The type.
+ * @return True if the operation vector contains the operation, false otherwise.
+ */
+bool operation_vector_has_name_type(operation_vector_t *ov, char *name,
+                                    commands type) {
+    operation_vector_t *ov_array = operation_vector_find_all(ov, name);
+
+//    printf("%s %c\n", name, type);
+
+    for (int i = 0; i < ov_array->size; i++) {
+        if (ov_array->operations[i]->type == type) {
+            operation_vector_free(ov_array);
+            return true;
+        }
+    }
+
+    operation_vector_free(ov_array);
+    return false;
+}
+
+bool operation_vector_has_command(operation_vector_t *ov, command_t *c) {
+    if (c->args.elements[0] == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid command");
+
+    return operation_vector_has_name_type(ov, c->args.elements[0], c->type);
 }
 
 bool operation_vector_contains(operation_vector_t *ov, char *name) {
