@@ -1925,18 +1925,11 @@ void command_system_init_vectors(command_system_t *cs) {
     /**
      * Initialize the universe set.
      */
-    cs->universe = set_init(1);
+    cs->set_vector = set_vector_init(1);
 
     command_t *universe_command = find_command_by_type(cs->cv, U);
 
-    for (int i = 0; i < universe_command->args.size; i++) {
-        set_add(cs->universe, universe_command->args.elements[i]);
-    }
-
-    /**
-     * Initialize the set vector.
-     */
-    cs->set_vector = set_vector_init(1);
+    set_vector_add(cs->set_vector, command_to_set(universe_command), 1);
 
     for (int i = 0; i < cs->cv->size; i++) {
         if (cs->cv->commands[i].type == S) {
@@ -1947,7 +1940,7 @@ void command_system_init_vectors(command_system_t *cs) {
                 set_add(set, cs->cv->commands[i].args.elements[j]);
             }
 
-            set_vector_add(cs->set_vector, set);
+            set_vector_add(cs->set_vector, set, i);
         }
     }
 }
