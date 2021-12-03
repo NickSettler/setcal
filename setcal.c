@@ -1314,6 +1314,24 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
         }
     }
 
+    /**
+     * Check if all operations in command vector exist
+     */
+    for (int i = 0; i < c_commands->size; i++) {
+        command_t c_command = c_commands->commands[i];
+        for (int j = 0; j < ov->size; j++) {
+            if (strcmp(
+                    c_command.args.elements[0],
+                    ov->operations[j]->name) == 0)
+                break;
+
+            if (j == ov->size - 1) {
+                print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                            "Operation does not exist");
+            }
+        }
+    }
+
 
     return true;
 }
