@@ -1174,6 +1174,7 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
                     "Invalid command vector");
 
     command_t *u_command = find_command_by_type(cv, U);
+    vector_t *unique_command_types = get_unique_command_types(cv);
 
     /**
      * Commands vector must contain only the following commands: U, S, R, C.
@@ -1183,6 +1184,26 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
             cv->commands[i].type != R && cv->commands[i].type != C) {
             print_error(__FILENAME__, __LINE__, __FUNCTION__,
                         "File has unknown command");
+        }
+    }
+
+    /**
+     * Commands must contains at least two command
+     */
+    if (unique_command_types->size < 2) {
+        print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                    "File must contain at least two commands");
+    }
+
+
+    /**
+     * Commands must contains something except U command
+     */
+    for (int i = 0; i < unique_command_types->size; i++) {
+        if (strcmp(unique_command_types->elements[i], "U") == 0 &&
+            unique_command_types->size == 1) {
+            print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                        "File must not contain only universe");
         }
     }
 
