@@ -1174,6 +1174,8 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
                     "Invalid command vector");
 
     command_t *u_command = find_command_by_type(cv, U);
+    command_vector_t *s_commands = find_command_by_type_all(cv, S);
+    command_vector_t *c_commands = find_command_by_type_all(cv, C);
     vector_t *unique_command_types = get_unique_command_types(cv);
 
     /**
@@ -1277,15 +1279,13 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
     /**
      * Check if all sets has items only form universe.
      */
-    for (int i = 0; i < cv->size; i++) {
-        if (cv->commands[i].type == S) {
-            command_t *s_command = &cv->commands[i];
-            for (int j = 0; j < s_command->args.size; j++) {
-                if (vector_contains(&(u_command->args),
-                                    s_command->args.elements[j]) == false) {
-                    print_error(__FILENAME__, __LINE__, __FUNCTION__,
-                                "Set contains elements not from universe");
-                }
+    for (int i = 0; i < c_commands->size; i++) {
+        for (int j = 0; j < c_commands->commands[i].args.size; j++) {
+            if (vector_contains(&(u_command->args),
+                                c_commands->commands[i].args.elements[j]) ==
+                false) {
+                print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                            "Set contains elements not from universe");
             }
         }
     }
@@ -1293,7 +1293,6 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
     /**
      * Check if there are not repeats in S commands
      */
-    command_vector_t *s_commands = find_command_by_type_all(cv, S);
     for (int i = 0; i < s_commands->size; i++) {
         command_t *s_command = &s_commands->commands[i];
         for (int j = 0; j < s_command->args.size; j++) {
