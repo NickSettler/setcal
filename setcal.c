@@ -1108,6 +1108,10 @@ command_t *find_command_by_type(command_vector_t *cv, commands type);
 
 command_vector_t *find_command_by_type_all(command_vector_t *cv, commands type);
 
+command_vector_t *command_vector_slice(command_vector_t *cv, int start, int end);
+
+bool command_vector_contains_type(command_vector_t *cv, commands type);
+
 void command_vector_print(command_vector_t *cv);
 
 void command_vector_free(command_vector_t *cv);
@@ -1407,6 +1411,32 @@ find_command_by_type_all(command_vector_t *cv, commands type) {
     }
 
     return commands;
+}
+
+
+command_vector_t *command_vector_slice(command_vector_t *cv, int start, int end){
+    command_vector_t *commands = command_vector_init(1);
+
+    for (int i = start; i < end; i++) {
+        command_vector_add(commands, cv->commands[i]);
+    }
+
+    return commands;
+}
+
+/**
+ * Checks if there is a command with the given type in the command vector.
+ * @param cv The command vector.
+ * @param type The command type.
+ * @return True if there is a command with the given type, false otherwise.
+ */
+bool command_vector_contains_type(command_vector_t *cv, commands type){
+    for (int i = 0; i < cv->size; i++) {
+        if (cv->commands[i].type == type) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
