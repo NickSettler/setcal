@@ -923,6 +923,7 @@ command_t *init_command() {
     if (c == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
 
+    c->type = 0;
     c->args = *vector_init(1);
     return c;
 }
