@@ -1180,7 +1180,8 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
     for (int i = 0; i < cv->size; i++) {
         if (cv->commands[i].type != U && cv->commands[i].type != S &&
             cv->commands[i].type != R && cv->commands[i].type != C) {
-            return false;
+            print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                        "File has unknown command");
         }
     }
 
@@ -1194,7 +1195,8 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
         }
     }
     if (u_count != 1) {
-        return false;
+        print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                    "There are multiple universes");
     }
 
     /**
@@ -1202,7 +1204,8 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
      */
     for (int i = 0; i < u_command->args.size; i++) {
         if (strlen(u_command->args.elements[i]) > 30) {
-            return false;
+            print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                        "Universe item has length greater than 30");
         }
     }
 
@@ -1221,7 +1224,8 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
     for (int i = 0; i < u_command->args.size; i++)
         if (strcmp(u_command->args.elements[i], "false") == 0 ||
             strcmp(u_command->args.elements[i], "true") == 0) {
-            return false;
+            print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                        "Universe contains true or false");
         }
 
     /**
@@ -1231,7 +1235,7 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
         if (vector_contains(&(u_command->args), ov->operations[i]->name) ==
             true) {
             print_error(__FILENAME__, __LINE__, __FUNCTION__,
-                        "Invalid command vector");
+                        "Universe contains operations");
         }
     }
 
@@ -1245,7 +1249,7 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
                 if (vector_contains(&(u_command->args),
                                     s_command->args.elements[j]) == false) {
                     print_error(__FILENAME__, __LINE__, __FUNCTION__,
-                                "Invalid command vector");
+                                "Set contains elements not from universe");
                 }
             }
         }
