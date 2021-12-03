@@ -321,7 +321,7 @@ void vector_foreach(vector_t *v, void (*f)(char *)) {
     }
 }
 
-// create a function to convert vector args to string with delimeter
+// create a function to convert vector args to string with delimiter
 char *vector_to_string(vector_t *v, char *delim) {
     char *str = (char *) malloc(sizeof(char) * (v->size + 1));
 
@@ -1934,44 +1934,6 @@ int main(int argc, char *argv[]) {
 
     command_system_free(cs);
 
-//    FILE *file = fopen(argv[1], "r");
-//    if (file == NULL) {
-//        fprintf(stderr, "Error during opening the file!\n");
-//        return 1;
-//    }
-//    char row[101];
-//    char *istr;
-//    univerzum *univerzum;
-//    univerzum = set_init(1);
-//    set_t **sets = NULL;
-//    int set_amount = 0;
-//    while (fgets(row, 101, file)) {
-//        istr = strtok(row, " \n");
-//        if (strcmp(istr, "U") == 0) {
-//            istr = strtok(NULL, " \n");
-//            while (istr != NULL) {
-//                set_add(univerzum, istr);
-//                istr = strtok(NULL, " \n");
-//            }
-//        } else if (strcmp(istr, "S") == 0) {
-//            set_t *s;
-//            s = set_init(1);
-//            istr = strtok(NULL, " \n");
-//            while (istr != NULL) {
-//                set_add(s, istr);
-//                istr = strtok(NULL, " \n");
-//            }
-//        }
-//    }
-//
-//    for (int i = 0; i < set_amount; i++) {
-//        for (int j = 0; j < sets[i]->size; j++) {
-//            printf("%s ", sets[i]->elements[j]);
-//        }
-//        printf("\n");
-//    }
-//
-//    fclose(file);
     return 0;
 }
 
@@ -2110,67 +2072,3 @@ bool function(relations *rel_arr, set_t *univerzum) {
     }
     return true;
 }
-
-
-/** muj main, zatim je blby, ale umi spocitat univerzu
- *
- int main (int argc, char *argv[]){
-    FILE *fp;
-    if ((fp = fopen(argv[1], "r")) == NULL){
-        printf("Nepodarilo se otevrit soubor!\n");
-        return 0;
-    }
-    char radek[101];
-    char *istr;
-    set_t univerzum;
-    univerzum.pocet = 0;
-    univerzum.prvky = NULL;
-    mnozina_t *mnoziny;
-    mnoziny = NULL;
-    int pocet_mnozin = 0;
-    while (fgets(radek, 101, fp)){
-        istr = strtok(radek, " \n");
-        if (strcmp(istr,"U") == 0){
-            istr = strtok(NULL, " \n");
-            while (istr != NULL){
-                set_add(&univerzum, istr);
-                istr = strtok(NULL, " \n");
-            }
-        }
-        else if (strcmp(istr,"S") == 0){
-            mnozina_t mnozina;
-            mnozina.prvky = NULL;
-            mnozina.pocet = 0;
-            istr = strtok(NULL, " \n");
-            while(istr != NULL){
-                mnozina_add_prvek(&mnozina, istr);
-                istr = strtok(NULL, " \n");
-            }
-            pole_add_mnozina(mnoziny, mnozina, &pocet_mnozin);
-        }
-    }
-    for (int i = 0; i < univerzum.pocet; i++){
-        printf("%s\n",univerzum.prvky[i]);
-    }
-    //printf("\n%s\n", mnoziny[0].prvky[1]);
-    //for (int i = 0; i < pocet_mnozin; i++){
-    //    for (int j = 0; j < mnoziny[i].pocet; j++){
-    //        printf("%s ", mnoziny[i].prvky[j]);
-    //    }
-    //    printf("\n");
-    //}
-    printf("dazhe syuda doshel\n");
-    for (int i = 0; i < univerzum.pocet; i++){
-        free(univerzum.prvky[i]);
-    }
-    //for (int i = 0; i < pocet_mnozin;  i++){
-    //    for (int j = 0; j < mnoziny[i].pocet; j++){
-    //        free(mnoziny[i].prvky[j]);
-    //    }
-    //}
-    free(univerzum.prvky);
-    //free(mnoziny);
-    fclose(fp);
-    return 0;
-}
-*/
