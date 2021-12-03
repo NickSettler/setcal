@@ -913,6 +913,8 @@ void set_command_args(command_t *c, vector_t *args);
 
 void add_command_arg(command_t *c, char *arg);
 
+set_t *command_to_set(command_t *c);
+
 void print_command(command_t *c);
 
 void free_command(command_t *c);
@@ -971,6 +973,30 @@ void add_command_arg(command_t *c, char *arg) {
         print_error(__FILENAME__, __LINE__, __func__, "Command args is NULL");
 
     vector_add(&c->args, arg);
+}
+
+/**
+ * Converts a command to a set.
+ * @param c The command.
+ * @return The set.
+ */
+set_t *command_to_set(command_t *c) {
+    set_t *s = set_init(1);
+    s->size = c->args.size;
+    s->elements = (char **) malloc(sizeof(char *) * c->args.size);
+
+    if (c->type != U && c->type != S)
+        print_error(__FILENAME__, __LINE__, __func__,
+                    "Command type is not U or S");
+
+    if (s->elements == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
+
+    for (int i = 0; i < c->args.size; i++) {
+        s->elements[i] = c->args.elements[i];
+    }
+
+    return s;
 }
 
 /**
