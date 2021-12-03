@@ -863,6 +863,7 @@ typedef enum {
  */
 typedef struct {
     char *name;
+    commands type;
 } operation;
 
 typedef struct operation_vector_t {
@@ -1219,10 +1220,11 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
                 command_vector_t *commands_before = command_vector_slice(cv, 0,
                                                                          i);
                 command_vector_t *commands_after = command_vector_slice(cv, i,
-                                                                        cv->size - 1);
+                                                                        cv->size -
+                                                                        1);
 
                 if (command_vector_contains_type(commands_before, C) ||
-                        command_vector_contains_type(commands_after, U)) {
+                    command_vector_contains_type(commands_after, U)) {
                     print_error(__FILENAME__, __LINE__, __FUNCTION__,
                                 "S and R commands must be after U command and before C commands");
                 }
@@ -1232,8 +1234,8 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
                 print_error(__FILENAME__, __LINE__, __FUNCTION__,
                             "C command must be after U command");
             } else {
-                command_vector_t *commands_after = command_vector_slice(cv, i,
-                                                                        cv->size - 1);
+                command_vector_t *commands_after =
+                        command_vector_slice(cv, i, cv->size - 1);
                 if (command_vector_contains_type(commands_after, U) ||
                     command_vector_contains_type(commands_after, S) ||
                     command_vector_contains_type(commands_after, R)) {
@@ -1555,13 +1557,14 @@ typedef struct {
  * @param name The name.
  * @return The initialized operation.
  */
-operation *operation_init(char *name) {
+operation *operation_init(char *name, commands type) {
     operation *o = (operation *) malloc(sizeof(operation));
 
     if (o == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
 
     o->name = name;
+    o->type = type;
 
     return o;
 }
@@ -1745,29 +1748,29 @@ void command_system_init_base(command_system_t *cs) {
 
     cs->operation_vector = operation_vector_init(1);
 
-    operation_vector_add(cs->operation_vector, operation_init("empty"));
-    operation_vector_add(cs->operation_vector, operation_init("card"));
+    operation_vector_add(cs->operation_vector, operation_init("empty", S));
+    operation_vector_add(cs->operation_vector, operation_init("card", S));
     operation_vector_add(cs->operation_vector,
-                         operation_init("complement"));
-    operation_vector_add(cs->operation_vector, operation_init("union"));
-    operation_vector_add(cs->operation_vector, operation_init("intersect"));
-    operation_vector_add(cs->operation_vector, operation_init("minus"));
-    operation_vector_add(cs->operation_vector, operation_init("subseteq"));
-    operation_vector_add(cs->operation_vector, operation_init("subset"));
-    operation_vector_add(cs->operation_vector, operation_init("equals"));
-    operation_vector_add(cs->operation_vector, operation_init("reflexive"));
-    operation_vector_add(cs->operation_vector, operation_init("symmetric"));
+                         operation_init("complement", S));
+    operation_vector_add(cs->operation_vector, operation_init("union", S));
+    operation_vector_add(cs->operation_vector, operation_init("intersect", S));
+    operation_vector_add(cs->operation_vector, operation_init("minus", S));
+    operation_vector_add(cs->operation_vector, operation_init("subseteq", S));
+    operation_vector_add(cs->operation_vector, operation_init("subset", S));
+    operation_vector_add(cs->operation_vector, operation_init("equals", S));
+    operation_vector_add(cs->operation_vector, operation_init("reflexive", R));
+    operation_vector_add(cs->operation_vector, operation_init("symmetric", R));
     operation_vector_add(cs->operation_vector,
-                         operation_init("antisymmetric"));
+                         operation_init("antisymmetric", R));
     operation_vector_add(cs->operation_vector,
-                         operation_init("transitive"));
-    operation_vector_add(cs->operation_vector, operation_init("function"));
-    operation_vector_add(cs->operation_vector, operation_init("domain"));
-    operation_vector_add(cs->operation_vector, operation_init("codomain"));
-    operation_vector_add(cs->operation_vector, operation_init("injective"));
+                         operation_init("transitive", R));
+    operation_vector_add(cs->operation_vector, operation_init("function", R));
+    operation_vector_add(cs->operation_vector, operation_init("domain", R));
+    operation_vector_add(cs->operation_vector, operation_init("codomain", R));
+    operation_vector_add(cs->operation_vector, operation_init("injective", R));
     operation_vector_add(cs->operation_vector,
-                         operation_init("surjective"));
-    operation_vector_add(cs->operation_vector, operation_init("bijective"));
+                         operation_init("surjective", R));
+    operation_vector_add(cs->operation_vector, operation_init("bijective", R));
 }
 
 void command_system_validate(command_system_t *cs) {
