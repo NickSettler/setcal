@@ -1198,7 +1198,7 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
     }
 
     /**
-     * Commands must contains at least two command
+     * Commands must contain at least two command
      */
     if (unique_command_types->size < 2) {
         print_error(__FILENAME__, __LINE__, __FUNCTION__,
@@ -1287,10 +1287,10 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
     /**
      * Check if all sets has items only form universe.
      */
-    for (int i = 0; i < c_commands->size; i++) {
-        for (int j = 0; j < c_commands->commands[i].args.size; j++) {
+    for (int i = 0; i < s_commands->size; i++) {
+        for (int j = 0; j < s_commands->commands[i].args.size; j++) {
             if (vector_contains(&(u_command->args),
-                                c_commands->commands[i].args.elements[j]) ==
+                                s_commands->commands[i].args.elements[j]) ==
                 false) {
                 print_error(__FILENAME__, __LINE__, __FUNCTION__,
                             "Set contains elements not from universe");
