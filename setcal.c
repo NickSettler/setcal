@@ -1097,7 +1097,7 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov);
 
 command_t *find_command_by_type(command_vector_t *cv, commands type);
 
-command_t *find_command_by_type_all(command_vector_t *cv, commands type);
+command_vector_t *find_command_by_type_all(command_vector_t *cv, commands type);
 
 void command_vector_print(command_vector_t *cv);
 
@@ -1278,20 +1278,16 @@ command_t *find_command_by_type(command_vector_t *cv, commands type) {
 }
 
 // create a function to find all commands of a certain type
-command_t *find_command_by_type_all(command_vector_t *cv, commands type) {
-    command_t *commands = (command_t *) malloc(
-            sizeof(command_t) * cv->size);
+command_vector_t *
+find_command_by_type_all(command_vector_t *cv, commands type) {
+    command_vector_t *commands = command_vector_init(1);
 
-    if (commands == NULL)
-        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
-
-    int count = 0;
     for (int i = 0; i < cv->size; i++) {
         if (cv->commands[i].type == type) {
-            commands[count] = cv->commands[i];
-            count++;
+            command_vector_add(commands, cv->commands[i]);
         }
     }
+
     return commands;
 }
 
