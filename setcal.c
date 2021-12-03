@@ -595,8 +595,10 @@ bool set_is_empty(int n, ...) {
 
     for (int i = 0; i < n; i++) {
         set_t *s = va_arg(args, set_t *);
-        if (s->size > 0)
+        if (!_set_is_empty(s)) {
+            va_end(args);
             return false;
+        }
     }
 
     va_end(args);
