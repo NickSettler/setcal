@@ -6,6 +6,9 @@
 #include <stdarg.h>
 #include <ctype.h>
 
+#define SET_OPERATIONS_COUNT 9
+#define RELATION_OPERATIONS_COUNT 10
+
 /**
  * -----------------------------------------------------------------------------
  * SYSTEM MODULE
@@ -1773,32 +1776,48 @@ void command_system_init_base(command_system_t *cs) {
     /**
      * Initialize the operation vector.
      */
-
     cs->operation_vector = operation_vector_init(1);
 
-    operation_vector_add(cs->operation_vector, operation_init("empty", S));
-    operation_vector_add(cs->operation_vector, operation_init("card", S));
-    operation_vector_add(cs->operation_vector,
-                         operation_init("complement", S));
-    operation_vector_add(cs->operation_vector, operation_init("union", S));
-    operation_vector_add(cs->operation_vector, operation_init("intersect", S));
-    operation_vector_add(cs->operation_vector, operation_init("minus", S));
-    operation_vector_add(cs->operation_vector, operation_init("subseteq", S));
-    operation_vector_add(cs->operation_vector, operation_init("subset", S));
-    operation_vector_add(cs->operation_vector, operation_init("equals", S));
-    operation_vector_add(cs->operation_vector, operation_init("reflexive", R));
-    operation_vector_add(cs->operation_vector, operation_init("symmetric", R));
-    operation_vector_add(cs->operation_vector,
-                         operation_init("antisymmetric", R));
-    operation_vector_add(cs->operation_vector,
-                         operation_init("transitive", R));
-    operation_vector_add(cs->operation_vector, operation_init("function", R));
-    operation_vector_add(cs->operation_vector, operation_init("domain", R));
-    operation_vector_add(cs->operation_vector, operation_init("codomain", R));
-    operation_vector_add(cs->operation_vector, operation_init("injective", R));
-    operation_vector_add(cs->operation_vector,
-                         operation_init("surjective", R));
-    operation_vector_add(cs->operation_vector, operation_init("bijective", R));
+    char *set_operations[SET_OPERATIONS_COUNT] = {
+            "empty",
+            "card",
+            "complement",
+            "union",
+            "intersect",
+            "minus",
+            "subseteq",
+            "subset",
+            "equals"
+    };
+
+    char *relation_operations[RELATION_OPERATIONS_COUNT] = {
+            "reflexive",
+            "symmetric",
+            "antisymmetric",
+            "transitive",
+            "function",
+            "domain",
+            "codomain",
+            "injective",
+            "surjective",
+            "bijective"
+    };
+
+    for (int i = 0; i < SET_OPERATIONS_COUNT; i++) {
+        if (strcmp(set_operations[i], "empty") == 0) continue;
+
+        operation_vector_add(cs->operation_vector,
+                             operation_init(set_operations[i], U));
+    }
+    for (int i = 0; i < SET_OPERATIONS_COUNT; i++) {
+        operation_vector_add(cs->operation_vector,
+                             operation_init(set_operations[i], S));
+    }
+
+    for (int i = 0; i < RELATION_OPERATIONS_COUNT; i++) {
+        operation_vector_add(cs->operation_vector,
+                             operation_init(relation_operations[i], R));
+    }
 }
 
 void command_system_validate(command_system_t *cs) {
