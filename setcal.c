@@ -1248,8 +1248,19 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
         }
     }
 
+    /**
+     * Commands must have at least one C command
+     */
+    for (int i = 0; i < cv->size; i++) {
+        if (cv->commands[i].type == C) {
+            break;
+        }
 
-
+        if (i == cv->size - 1) {
+            print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                        "No C commands found");
+        }
+    }
 
     /**
      * Commands must contain at least two command
