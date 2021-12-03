@@ -1092,6 +1092,10 @@ void command_vector_replace(command_vector_t *cv, command_t c, int index);
 
 bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov);
 
+void attach_command_system(command_vector_t *cv, command_system_t *cs);
+
+vector_t *get_unique_command_types(command_vector_t *cv);
+
 command_t *find_command_by_type(command_vector_t *cv, commands type);
 
 command_vector_t *find_command_by_type_all(command_vector_t *cv, commands type);
@@ -1293,6 +1297,41 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
  */
 void attach_command_system(command_vector_t *cv, command_system_t *cs) {
     cv->system = cs;
+}
+
+/**
+ * Gets unique command types from the given command vector.
+ * @param cv Command vector.
+ * @return Unique command types.
+ */
+vector_t *get_unique_command_types(command_vector_t *cv) {
+    vector_t *unique_command_types = vector_init(1);
+
+    for (int i = 0; i < cv->size; i++) {
+        char *command_type = " ";
+        switch (cv->commands[i].type) {
+            case U:
+                command_type = "U";
+                break;
+            case S:
+                command_type = "S";
+                break;
+            case R:
+                command_type = "R";
+                break;
+            case C:
+                command_type = "C";
+                break;
+        }
+
+        if (vector_contains(unique_command_types,
+                            command_type) ==
+            false) {
+            vector_add(unique_command_types, command_type);
+        }
+    }
+
+    return unique_command_types;
 }
 
 /**
