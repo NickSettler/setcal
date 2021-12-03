@@ -1701,6 +1701,8 @@ void command_system_validate(command_system_t *cs);
 
 void command_system_init_vectors(command_system_t *cs);
 
+void command_system_exec(command_system_t *cs);
+
 void command_system_free(command_system_t *cs);
 
 /**
@@ -1804,6 +1806,10 @@ void command_system_init_vectors(command_system_t *cs) {
     }
 }
 
+/**
+ * Starts the command system.
+ * @param cs The command system.
+ */
 void command_system_exec(command_system_t *cs) {
     for (int i = 0; i < cs->cv->size; i++) {
         command_t *command = &cs->cv->commands[i];
