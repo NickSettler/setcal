@@ -854,7 +854,6 @@ typedef enum {
     S = 'S',
     R = 'R',
     C = 'C',
-    N = 'N',
 } commands;
 
 /**
@@ -982,8 +981,6 @@ void print_command(command_t *c) {
             break;
         case C:
             printf("C ");
-            break;
-        case N:
             break;
     }
     for (int i = 0; i < c->args.size; i++) {
@@ -1289,6 +1286,11 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
     return true;
 }
 
+/**
+ * Attaches commands system to the given command vector.
+ * @param cv Command vector.
+ * @param cs Command system.
+ */
 void attach_command_system(command_vector_t *cv, command_system_t *cs) {
     cv->system = cs;
 }
