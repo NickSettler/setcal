@@ -1012,7 +1012,7 @@ command_t *command_copy(command_t *c) {
     for (int i = 0; i < c->args.size; i++) {
         add_command_arg(c_copy, c->args.elements[i]);
     }
-    
+
     return c_copy;
 }
 
@@ -1971,18 +1971,45 @@ void command_system_exec(command_system_t *cs) {
 
         char *operation_name = command->args.elements[0];
 
-        if (strcmp(operation_name, "union") == 0) {
-            int first_index = atoi(command->args.elements[1]);
-            int second_index = atoi(command->args.elements[2]);
+        /**
+         * Operation check. Operation type must relate to argument type.
+         */
+        operation *operation = operation_vector_find(cs->operation_vector,
+                                                     operation_name);
 
+        command_t *first_cmd = init_command();
+        command_t *second_cmd = init_command();
+
+        int first_index = atoi(command->args.elements[1]);
+        int second_index = atoi(command->args.elements[2]);
+
+        if (first_index) {
+            first_cmd = command_copy(
+                    get_command_by_index(cs->cv, first_index - 1));
+            first_cmd->args.elements[0] = command->args.elements[0];
+        }
+
+        if (second_index) {
+            second_cmd = command_copy(
+                    get_command_by_index(cs->cv, second_index - 1));
+            second_cmd->args.elements[0] = command->args.elements[0];
+        }
+
+        if ((operation_vector_has_command(
+                cs->operation_vector, first_cmd) ||
+             operation_vector_has_command(
+                     cs->operation_vector, second_cmd)) == false) {
+            print_error(__FILENAME__, __LINE__, __func__,
+                        "Invalid command");
+        }
+
+        if (strcmp(operation_name, "union") == 0) {
             set_t *s = set_union(
                     2,
                     set_vector_find(cs->set_vector, first_index),
                     set_vector_find(cs->set_vector, second_index));
             command_vector_replace(cs->cv, *set_to_command(s), i);
         } else if (strcmp(operation_name, "intersect") == 0) {
-            int first_index = atoi(command->args.elements[1]);
-            int second_index = atoi(command->args.elements[2]);
 
             set_t *s = set_intersection(
                     2,
@@ -1990,16 +2017,11 @@ void command_system_exec(command_system_t *cs) {
                     set_vector_find(cs->set_vector, second_index));
             command_vector_replace(cs->cv, *set_to_command(s), i);
         } else if (strcmp(operation_name, "empty") == 0) {
-            int index = atoi(command->args.elements[1]);
-
             bool is_empty = set_is_empty(1, set_vector_find(cs->set_vector,
-                                                            index));
+                                                            first_index));
 
             command_vector_replace(cs->cv, bool_to_command(is_empty), i);
         } else if (strcmp(operation_name, "minus") == 0) {
-            int first_index = atoi(command->args.elements[1]);
-            int second_index = atoi(command->args.elements[2]);
-
             set_t *s = set_diff(
                     2,
                     set_vector_find(cs->set_vector, first_index),
