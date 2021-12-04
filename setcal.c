@@ -2485,6 +2485,120 @@ void relation_vector_free(relation_vector_t *rv) {
     free(rv);
 }
 
+typedef struct {
+    int rows;
+    int columns;
+    set_t *row_items;
+    set_t *column_items;
+    int **matrix;
+} relation_table_t;
+
+relation_table_t *relation_table_init(set_t *row_items, set_t *column_items);
+
+relation_table_t *relation_table_init_relation(set_t *row_items,
+                                               set_t *column_items,
+                                               relation_vector_t *rv);
+
+void relation_table_add_relation(relation_table_t *rt, new_relations_t *r);
+
+void relation_table_remove_relation(relation_table_t *rt, new_relations_t *r);
+
+void relation_table_print(relation_table_t *rt);
+
+void relation_table_print_with_names(relation_table_t *rt);
+
+/**
+ * Initializes a relation_table_t.
+ * @param row_items The set of row items.
+ * @param column_items The set of column items.
+ * @return The initialized relation_table_t.
+ */
+relation_table_t *relation_table_init(set_t *row_items, set_t *column_items) {
+    relation_table_t *rt = malloc(sizeof(relation_table_t));
+
+    rt->rows = row_items->size;
+    rt->columns = column_items->size;
+    rt->row_items = row_items;
+    rt->column_items = column_items;
+    rt->matrix = malloc(sizeof(int *) * rt->rows);
+
+    for (int i = 0; i < rt->rows; i++) {
+        rt->matrix[i] = malloc(sizeof(int) * rt->columns);
+
+        for (int j = 0; j < rt->columns; j++) {
+            rt->matrix[i][j] = 0;
+        }
+    }
+
+    return rt;
+}
+
+/**
+ * Initializes a relation_table_t using relation.
+ * @param row_items The set of row items.
+ * @param column_items The set of column items.
+ * @param rv The relation_vector_t.
+ * @return The initialized relation_table_t.
+ */
+relation_table_t *relation_table_init_relation(set_t *row_items,
+                                               set_t *column_items,
+                                               relation_vector_t *rv) {
+    relation_table_t *rt = relation_table_init(row_items, column_items);
+
+    for (int i = 0; i < rv->size; i++) {
+        new_relations_t *r = rv->relations[i];
+
+        int row_index = set_item_index(rt->row_items, r->element_a);
+        int column_index = set_item_index(rt->column_items, r->element_b);
+
+        rt->matrix[row_index][column_index] = 1;
+    }
+
+    return rt;
+}
+
+void relation_table_add_relation(relation_table_t *rt, new_relations_t *r) {
+    int row_index = set_item_index(rt->row_items, r->element_a);
+    int column_index = set_item_index(rt->column_items, r->element_b);
+
+    rt->matrix[row_index][column_index] = 1;
+}
+
+void relation_table_remove_relation(relation_table_t *rt, new_relations_t *r) {
+    int row_index = set_item_index(rt->row_items, r->element_a);
+    int column_index = set_item_index(rt->column_items, r->element_b);
+
+    rt->matrix[row_index][column_index] = 0;
+}
+
+void relation_table_print(relation_table_t *rt) {
+    for (int i = 0; i < rt->rows; i++) {
+        for (int j = 0; j < rt->columns; j++) {
+            printf("%d ", rt->matrix[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+// create a function to print relation table with row and column names
+void relation_table_print_with_names(relation_table_t *rt) {
+    printf("R ");
+    for (int i = 0; i < rt->columns; i++) {
+        if (i  < rt->columns) {
+            printf("%s ", rt->column_items->elements[i]);
+        }
+    }
+    printf("\n");
+    for (int i = 0; i < rt->rows; i++) {
+        printf("%s ", rt->row_items->elements[i]);
+        for (int j = 0; j < rt->columns; j++) {
+            printf("%d ", rt->matrix[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+
 /**
  * Relation math
  */
