@@ -236,7 +236,7 @@ vector_t *vector_init(int capacity) {
                     "Capacity must be greater than 0");
     }
 
-    vector_t *v = (vector_t *) malloc(sizeof(vector_t));
+    vector_t *v = malloc(sizeof(vector_t));
 
     if (v == NULL) {
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
@@ -245,6 +245,10 @@ vector_t *vector_init(int capacity) {
     v->size = 0;
     v->capacity = capacity;
     v->elements = (char **) malloc(capacity * sizeof(char *));
+
+    for (; v->size < capacity; v->size++) {
+        v->elements[v->size] = malloc(sizeof(char) * 31);
+    }
 
     if (v->elements == NULL) {
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
@@ -286,16 +290,24 @@ void resize_all(vector_t *v, unsigned int max) {
  */
 void vector_add(vector_t *v, char *s) {
     if (v->size == v->capacity) {
-        v->capacity *= 2;
+        v->capacity += 1;
+        printf("Resizing vector to %d\n", v->capacity);
         v->elements = (char **) realloc(v->elements,
                                         v->capacity * sizeof(char *));
+        v->elements[v->size++] = malloc(sizeof(char) * 31);
 
         if (v->elements == NULL) {
             print_error(__FILENAME__, __LINE__, __func__, "Realloc failed");
         }
     }
-    v->elements[v->size] = remove_char(s, ' ');
-    v->size++;
+
+//    s = remove_char(s, '\n');
+//    s = remove_char(s, '\r');
+    s = remove_char(s, ' ');
+
+    strcpy(v->elements[v->size - 1], s);
+//    v->elements[v->size] = remove_char(s, ' ');
+//    v->size++;
 
 //    resize_all(v, find_max_vector_element_size(v));
 }
@@ -382,13 +394,12 @@ void vector_free(vector_t *v) {
         }
     }
 
-    for (int i = 0; i < v->size; i++) {
+    for (int i = 0; i < v->capacity; i++) {
         free(v->elements[i]);
-        v->elements[i] = NULL;
     }
 
     free(v->elements);
-    v->elements = NULL;
+    free(v);
 }
 
 /**
@@ -1058,7 +1069,7 @@ operation *operation_init(char *name, commands type, int argc);
 void operation_free(operation *o);
 
 /**
- * Operation definition
+ * Operation vector definition
  */
 
 typedef struct operation_vector_t {
@@ -1318,7 +1329,7 @@ void free_command(command_t *c) {
     if (c->args.size == 0)
         print_error(__FILENAME__, __LINE__, __FUNCTION__, "Invalid args");
 
-    vector_free(&(c->args));
+    vector_free(&c->args);
     free(c);
 }
 
@@ -1329,7 +1340,7 @@ void free_command(command_t *c) {
  */
 command_t *parse_command(char *s) {
     command_t *c = init_command();
-    vector_t *args = vector_init(10);
+    vector_t *args = vector_init(1);
 
     if (s == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "String is NULL");
@@ -1452,7 +1463,7 @@ command_vector_t *command_vector_init(int capacity) {
  */
 void command_vector_add(command_vector_t *cv, command_t c) {
     if (cv->size == cv->capacity) {
-        cv->capacity *= 2;
+        cv->capacity += 1;
         cv->commands = (command_t *) realloc(cv->commands,
                                              cv->capacity * sizeof(command_t));
 
@@ -1880,8 +1891,10 @@ void command_vector_free(command_vector_t *cv) {
         print_error(__FILENAME__, __LINE__, __FUNCTION__,
                     "Invalid pointer");
 
-    free(cv->commands);
-    free(cv);
+    for (int i = 0; i < cv->size; i++) {
+        free_command(&cv->commands[i]);
+    }
+//    free(cv);
 }
 
 /**
@@ -2128,11 +2141,12 @@ command_system_t *command_system_init(char *filename) {
 
     cs->filename = filename;
     cs->cv = parse_file(filename);
-    attach_command_system(cs->cv, cs);
 
-    command_system_init_base(cs);
-    command_system_validate(cs);
-    command_system_init_vectors(cs);
+//    attach_command_system(cs->cv, cs);
+
+//    command_system_init_base(cs);
+//    command_system_validate(cs);
+//    command_system_init_vectors(cs);
 
     /**
      * Initialize the operation map.
@@ -2379,9 +2393,9 @@ int main(int argc, char *argv[]) {
 
     command_system_t *cs = command_system_init(argv[1]);
 
-    command_system_exec(cs);
-
-    command_vector_print(cs->cv);
+//    command_system_exec(cs);
+//
+//    command_vector_print(cs->cv);
 
     command_system_free(cs);
 
