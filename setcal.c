@@ -580,6 +580,10 @@ bool _set_is_empty(set_t *s);
 
 bool set_is_empty(int n, ...);
 
+int _set_card(set_t *s);
+
+int set_card(int n, ...);
+
 set_t *_set_union(set_t *s1, set_t *s2);
 
 set_t *set_union(int n, ...);
@@ -628,6 +632,35 @@ bool set_is_empty(int n, ...) {
 
     va_end(args);
     return true;
+}
+
+/**
+ * Counts the number of elements in a set.
+ * @param s The set.
+ * @return The number of elements in the set.
+ */
+int _set_card(set_t *s) {
+    return s->size;
+}
+
+/**
+ * Counts the number of elements in a set.
+ * @param n The number of sets.
+ * @param ... The sets.
+ * @return The number of elements in the set.
+ */
+int set_card(int n, ...) {
+    va_list args;
+    va_start(args, n);
+
+    int count = 0;
+    for (int i = 0; i < n; i++) {
+        set_t *s = va_arg(args, set_t *);
+        count += _set_card(s);
+    }
+
+    va_end(args);
+    return count;
 }
 
 /**
