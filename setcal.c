@@ -981,13 +981,22 @@ typedef enum {
 } commands;
 
 /**
- * Operation type
+ * Operation definition
  */
+
 typedef struct {
     char *name;
     commands type;
     int argc;
 } operation;
+
+operation *operation_init(char *name, commands type, int argc);
+
+void operation_free(operation *o);
+
+/**
+ * Operation definition
+ */
 
 typedef struct operation_vector_t {
     int size;
@@ -995,33 +1004,32 @@ typedef struct operation_vector_t {
     operation **operations;
 } operation_vector_t;
 
+operation_vector_t *operation_vector_init(int capacity);
+
+void operation_vector_add(operation_vector_t *ov, operation *o);
+
+operation *operation_vector_find(operation_vector_t *ov, char *name);
+
+operation_vector_t *operation_vector_find_all(operation_vector_t *ov,
+                                              char *name);
+
+bool operation_vector_has(operation_vector_t *ov, char *name);
+
+bool operation_vector_has_name_type(operation_vector_t *ov, char *name,
+                                    commands type);
+
+bool operation_vector_contains(operation_vector_t *ov, char *name);
+
+void operation_vector_free(operation_vector_t *ov);
+
 /**
- * Command type
+ * Command definition
  */
+
 typedef struct {
     commands type;
     vector_t args;
 } command_t;
-
-typedef struct command_system_t command_system_t;
-/**
- * Command vector type
- */
-typedef struct {
-    int size;
-    int capacity;
-    command_t *commands;
-    command_system_t *system;
-} command_vector_t;
-
-
-typedef struct command_system_t {
-    char *filename;
-    command_vector_t *cv;
-    operation_vector_t *operation_vector;
-    set_t *universe;
-    set_vector_t *set_vector;
-};
 
 command_t *init_command();
 
@@ -1040,6 +1048,71 @@ void print_command(command_t *c);
 void free_command(command_t *c);
 
 command_t *parse_command(char *s);
+
+/**
+ * Command system definition
+ */
+
+typedef struct command_system_t command_system_t;
+
+command_system_t *command_system_init(char *filename);
+
+void command_system_init_base(command_system_t *cs);
+
+void command_system_validate(command_system_t *cs);
+
+void command_system_init_vectors(command_system_t *cs);
+
+void command_system_exec(command_system_t *cs);
+
+void command_system_free(command_system_t *cs);
+
+/**
+ * Command vector definition
+ */
+typedef struct {
+    int size;
+    int capacity;
+    command_t *commands;
+    command_system_t *system;
+} command_vector_t;
+
+command_vector_t *command_vector_init(int capacity);
+
+void command_vector_add(command_vector_t *cv, command_t c);
+
+void command_vector_replace(command_vector_t *cv, command_t c, int index);
+
+bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov);
+
+void attach_command_system(command_vector_t *cv, command_system_t *cs);
+
+vector_t *get_unique_command_types(command_vector_t *cv);
+
+command_t *get_command_by_index(command_vector_t *cv, int index);
+
+command_t *find_command_by_type(command_vector_t *cv, commands type);
+
+command_vector_t *find_command_by_type_all(command_vector_t *cv, commands type);
+
+command_vector_t *
+command_vector_slice(command_vector_t *cv, int start, int end);
+
+bool command_vector_contains_type(command_vector_t *cv, commands type);
+
+void command_vector_print(command_vector_t *cv);
+
+void command_vector_free(command_vector_t *cv);
+
+command_vector_t *parse_file(char *filename);
+
+typedef struct command_system_t {
+    char *filename;
+    command_vector_t *cv;
+    operation_vector_t *operation_vector;
+    set_t *universe;
+    set_vector_t *set_vector;
+};
 
 /**
  * Initializes a command.
@@ -1265,35 +1338,6 @@ command_t *set_to_command(set_t *s) {
  * COMMAND MODULE [COMMAND VECTOR]
  * -----------------------------------------------------------------------------
  */
-
-command_vector_t *command_vector_init(int capacity);
-
-void command_vector_add(command_vector_t *cv, command_t c);
-
-void command_vector_replace(command_vector_t *cv, command_t c, int index);
-
-bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov);
-
-void attach_command_system(command_vector_t *cv, command_system_t *cs);
-
-vector_t *get_unique_command_types(command_vector_t *cv);
-
-command_t *get_command_by_index(command_vector_t *cv, int index);
-
-command_t *find_command_by_type(command_vector_t *cv, commands type);
-
-command_vector_t *find_command_by_type_all(command_vector_t *cv, commands type);
-
-command_vector_t *
-command_vector_slice(command_vector_t *cv, int start, int end);
-
-bool command_vector_contains_type(command_vector_t *cv, commands type);
-
-void command_vector_print(command_vector_t *cv);
-
-void command_vector_free(command_vector_t *cv);
-
-command_vector_t *parse_file(char *filename);
 
 /**
  * Initializes a command vector.
@@ -1780,7 +1824,6 @@ operation *operation_init(char *name, commands type, int argc) {
     return o;
 }
 
-
 /**
  * Frees an operation.
  * @param o The operation.
@@ -1797,24 +1840,6 @@ void operation_free(operation *o) {
  * COMMAND MODULE [OPERATION VECTOR]
  * -----------------------------------------------------------------------------
  */
-
-operation_vector_t *operation_vector_init(int capacity);
-
-void operation_vector_add(operation_vector_t *ov, operation *o);
-
-operation *operation_vector_find(operation_vector_t *ov, char *name);
-
-operation_vector_t *operation_vector_find_all(operation_vector_t *ov,
-                                              char *name);
-
-bool operation_vector_has(operation_vector_t *ov, char *name);
-
-bool operation_vector_has_name_type(operation_vector_t *ov, char *name,
-                                    commands type);
-
-bool operation_vector_contains(operation_vector_t *ov, char *name);
-
-void operation_vector_free(operation_vector_t *ov);
 
 /**
  * Initializes an operation vector.
@@ -1970,22 +1995,6 @@ void operation_vector_free(operation_vector_t *ov) {
  * COMMAND MODULE [COMMAND SYSTEM]
  * -----------------------------------------------------------------------------
  */
-
-/**
- * Command system type.
- */
-
-command_system_t *command_system_init(char *filename);
-
-void command_system_init_base(command_system_t *cs);
-
-void command_system_validate(command_system_t *cs);
-
-void command_system_init_vectors(command_system_t *cs);
-
-void command_system_exec(command_system_t *cs);
-
-void command_system_free(command_system_t *cs);
 
 /**
  * Initializes a command system.
