@@ -869,6 +869,7 @@ typedef enum {
 typedef struct {
     char *name;
     commands type;
+    int argc;
 } operation;
 
 typedef struct operation_vector_t {
@@ -1633,7 +1634,7 @@ typedef struct {
  * @param name The name.
  * @return The initialized operation.
  */
-operation *operation_init(char *name, commands type) {
+operation *operation_init(char *name, commands type, int argc) {
     operation *o = (operation *) malloc(sizeof(operation));
 
     if (o == NULL)
@@ -1641,6 +1642,7 @@ operation *operation_init(char *name, commands type) {
 
     o->name = name;
     o->type = type;
+    o->argc = argc;
 
     return o;
 }
@@ -1903,6 +1905,8 @@ void command_system_init_base(command_system_t *cs) {
             "equals"
     };
 
+    int set_operations_argc[SET_OPERATIONS_COUNT] = {1, 1, 1, 2, 2, 2, 2, 2, 2};
+
     char *relation_operations[RELATION_OPERATIONS_COUNT] = {
             "reflexive",
             "symmetric",
@@ -1916,18 +1920,24 @@ void command_system_init_base(command_system_t *cs) {
             "bijective"
     };
 
+    int relation_operations_argc[RELATION_OPERATIONS_COUNT] = {1, 1, 1, 1, 1, 1,
+                                                               1, 3, 3, 3};
+
     for (int i = 0; i < SET_OPERATIONS_COUNT; i++) {
         operation_vector_add(cs->operation_vector,
-                             operation_init(set_operations[i], U));
+                             operation_init(set_operations[i], U,
+                                            set_operations_argc[i]));
     }
     for (int i = 0; i < SET_OPERATIONS_COUNT; i++) {
         operation_vector_add(cs->operation_vector,
-                             operation_init(set_operations[i], S));
+                             operation_init(set_operations[i], S,
+                                            set_operations_argc[i]));
     }
 
     for (int i = 0; i < RELATION_OPERATIONS_COUNT; i++) {
         operation_vector_add(cs->operation_vector,
-                             operation_init(relation_operations[i], R));
+                             operation_init(relation_operations[i], R,
+                                            relation_operations_argc[i]));
     }
 }
 
@@ -1976,6 +1986,10 @@ void command_system_exec(command_system_t *cs) {
          */
         operation *operation = operation_vector_find(cs->operation_vector,
                                                      operation_name);
+
+        if (operation->argc != command->args.size - 1)
+            print_error(__FILENAME__, __LINE__, __func__,
+                        "Invalid number of arguments");
 
         command_t *first_cmd = init_command();
         command_t *second_cmd = init_command();
