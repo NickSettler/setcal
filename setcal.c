@@ -1216,6 +1216,8 @@ void print_command(command_t *c);
 
 void free_command(command_t *c);
 
+commands get_command_type_from_char(char c);
+
 command_t *parse_command(char *s);
 
 command_t bool_to_command(bool b);
@@ -1426,6 +1428,26 @@ void free_command(command_t *c) {
 
     vector_free(&(c->args));
     free(c);
+}
+
+/**
+ * Initializes a command vector.
+ * @param c capacity The capacity of the vector.
+ * @return The initialized command vector.
+ */
+commands get_command_type_from_char(char c) {
+    switch (c) {
+        case 'U':
+            return U;
+        case 'S':
+            return S;
+        case 'R':
+            return R;
+        case 'C':
+            return C;
+        default:
+            return 0;
+    }
 }
 
 /**
