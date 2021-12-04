@@ -1170,6 +1170,15 @@ command_t bool_to_command(bool b) {
     return *c;
 }
 
+command_t int_to_command(int i) {
+    command_t *c = init_command();
+
+    c->args = *vector_init(1);
+    vector_add(&c->args, int_to_string(i));
+
+    return *c;
+}
+
 // create a function to convert set to command
 command_t *set_to_command(set_t *s) {
     command_t *c = init_command();
