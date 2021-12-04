@@ -584,6 +584,10 @@ int _set_card(set_t *s);
 
 int set_card(int n, ...);
 
+set_t *_set_complement(set_t *s1, set_t *s2);
+
+set_t *set_complement(int n, ...);
+
 set_t *_set_union(set_t *s1, set_t *s2);
 
 set_t *set_union(int n, ...);
