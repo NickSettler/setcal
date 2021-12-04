@@ -664,6 +664,33 @@ int set_card(int n, ...) {
 }
 
 /**
+ * Computes the complement of a set.
+ * @param s1 The set.
+ * @param s2 The set.
+ * @return The complement of the set.
+ */
+set_t *_set_complement(set_t *s1, set_t *s2) {
+    return _set_diff(s1, s2);
+}
+
+/**
+ * Computes the complement of a set.
+ * @param n The number of sets.
+ * @param ... The sets.
+ * @return The complement of the set.
+ */
+set_t *set_complement(int n, ...) {
+    va_list args;
+    va_start(args, n);
+
+    set_t *s1 = va_arg(args, set_t *);
+    set_t *s2 = va_arg(args, set_t *);
+
+    va_end(args);
+    return _set_complement(s1, s2);
+}
+
+/**
  * Returns the union of two sets.
  * @param s1 The first set.
  * @param s2 The second set.
@@ -2097,7 +2124,12 @@ void command_system_exec(command_system_t *cs) {
 
             command_vector_replace(cs->cv, int_to_command(card), i);
         } else if (strcmp(operation_name, "complement") == 0) {
-            // @todo implement
+            set_t *s = set_complement(
+                    2,
+                    set_vector_find(cs->set_vector, 1),
+                    set_vector_find(cs->set_vector, first_index));
+
+            command_vector_replace(cs->cv, *set_to_command(s), i);
         } else if (strcmp(operation_name, "union") == 0) {
             set_t *s = set_union(
                     2,
