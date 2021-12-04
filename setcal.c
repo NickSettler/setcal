@@ -2154,7 +2154,12 @@ void command_system_exec(command_system_t *cs) {
         } else if (strcmp(operation_name, "subset") == 0) {
             // @todo implement
         } else if (strcmp(operation_name, "equals") == 0) {
-            // @todo implement
+            bool is_equals = set_is_equal(
+                    2,
+                    set_vector_find(cs->set_vector, first_index),
+                    set_vector_find(cs->set_vector, second_index));
+
+            command_vector_replace(cs->cv, bool_to_command(is_equals), i);
         }
     }
 }
