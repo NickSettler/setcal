@@ -411,6 +411,8 @@ set_t *set_init(int capacity);
 
 set_t *set_init_indexed(int index, int capacity);
 
+int set_item_index(set_t *s, char *item);
+
 void set_add(set_t *s, char *e);
 
 void set_add_row(set_t *s, int row);
@@ -466,6 +468,21 @@ set_t *set_init_indexed(int index, int capacity) {
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
 
     return s;
+}
+
+/**
+ * Returns the index of the item in the set.
+ * @param s The set.
+ * @param item The item.
+ * @return The index of the item in the set.
+ */
+int set_item_index(set_t *s, char *item) {
+    for (int i = 0; i < s->size; i++) {
+        if (strcmp(s->elements[i], item) == 0) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 /**
