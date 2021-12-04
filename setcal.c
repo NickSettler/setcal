@@ -2483,11 +2483,17 @@ typedef struct {
     char *element_b;
 } new_relations_t;
 
-new_relations_t relation_init(char *element_a, char *element_b) {
-    new_relations_t new_relations;
+new_relations_t *relation_init(char *element_a, char *element_b);
 
-    new_relations.element_a = element_a;
-    new_relations.element_b = element_b;
+void relation_print(new_relations_t *r);
+
+void relation_free(new_relations_t *r);
+
+new_relations_t *relation_init(char *element_a, char *element_b) {
+    new_relations_t *new_relations = malloc(sizeof(new_relations_t));
+
+    new_relations->element_a = element_a;
+    new_relations->element_b = element_b;
 
     return new_relations;
 }
@@ -2509,24 +2515,24 @@ void relation_free(new_relations_t *r) {
 }
 
 /**
-* Definition for relations vector
+* Definition for relations set
 */
 
 typedef struct {
     int size;
     int capacity;
     new_relations_t **relations;
-} relation_vector_t;
+} relation_set_t;
 
-relation_vector_t *relation_vector_init(int capacity);
+relation_set_t *relation_set_init(int capacity);
 
 /**
- * Initializes a relation_vector_t.
- * @param capacity The capacity of the relation_vector_t.
- * @return The initialized relation_vector_t.
+ * Initializes a relation_set_t.
+ * @param capacity The capacity of the relation_set_t.
+ * @return The initialized relation_set_t.
  */
-relation_vector_t *relation_vector_init(int capacity) {
-    relation_vector_t *rv = malloc(sizeof(relation_vector_t));
+relation_set_t *relation_set_init(int capacity) {
+    relation_set_t *rv = malloc(sizeof(relation_set_t));
 
     rv->size = 0;
     rv->capacity = capacity;
@@ -2536,11 +2542,11 @@ relation_vector_t *relation_vector_init(int capacity) {
 }
 
 /**
- * Adds a new relation to the relation_vector_t.
- * @param rv The relation_vector_t.
+ * Adds a new relation to the relation_set_t.
+ * @param rv The relation_set_t.
  * @param r The relation_t.
  */
-void relation_vector_add_relation(relation_vector_t *rv, new_relations_t *r) {
+void relation_set_add_relation(relation_set_t *rv, new_relations_t *r) {
     if (rv->size == rv->capacity) {
         rv->capacity += 1;
         rv->relations = realloc(rv->relations,
@@ -2552,13 +2558,13 @@ void relation_vector_add_relation(relation_vector_t *rv, new_relations_t *r) {
 }
 
 /**
- * Checks if the relation_vector_t is injective.
- * @param rv The relation_vector_t.
+ * Checks if the relation_set_t is injective.
+ * @param rv The relation_set_t.
  * @param element_a The first element.
  * @param element_b The second element.
  */
 void
-relation_vector_add(relation_vector_t *rv, char *element_a, char *element_b) {
+relation_set_add(relation_set_t *rv, char *element_a, char *element_b) {
     if (rv->size == rv->capacity) {
         rv->capacity += 1;
         rv->relations = realloc(rv->relations,
@@ -2570,7 +2576,73 @@ relation_vector_add(relation_vector_t *rv, char *element_a, char *element_b) {
     r->element_a = element_a;
     r->element_b = element_b;
 
-    relation_vector_add_relation(rv, r);
+    relation_set_add_relation(rv, r);
+}
+
+/**
+ * Prints vector of relations.
+ * @param rv The relation_set_t.
+ */
+void relation_set_print(relation_set_t *rv) {
+    for (int i = 0; i < rv->size; i++) {
+        printf("%s %s\n", rv->relations[i]->element_a,
+               rv->relations[i]->element_b);
+    }
+}
+
+/**
+ * Frees the memory of the relation_set_t.
+ * @param rv The relation_set_t.
+ */
+void relation_set_free(relation_set_t *rv) {
+    for (int i = 0; i < rv->size; i++) {
+        free(rv->relations[i]);
+    }
+    free(rv->relations);
+    free(rv);
+}
+
+/**
+ * Relation vector definition
+ */
+typedef struct {
+    unsigned int index;
+    int size;
+    int capacity;
+    relation_set_t **relations;
+} relation_vector_t;
+
+/**
+ * Initializes a relation_vector_t.
+ * @param capacity The capacity of the relation_vector_t.
+ * @return The initialized relation_vector_t.
+ */
+relation_vector_t *relation_vector_init(int capacity) {
+    relation_vector_t *rv = malloc(sizeof(relation_vector_t));
+
+    rv->index = 0;
+    rv->size = 0;
+    rv->capacity = capacity;
+    rv->relations = malloc(sizeof(relation_set_t *) * capacity);
+
+    return rv;
+}
+
+/**
+ * Adds a new relation to the relation_vector_t.
+ * @param rv The relation_vector_t.
+ * @param rs The relation_set_t.
+ */
+void
+relation_vector_add_relation_set(relation_vector_t *rv, relation_set_t *rs) {
+    if (rv->size == rv->capacity) {
+        rv->capacity += 1;
+        rv->relations = realloc(rv->relations,
+                                sizeof(relation_set_t *) * rv->capacity);
+    }
+
+    rv->relations[rv->size] = rs;
+    rv->size++;
 }
 
 /**
@@ -2579,23 +2651,26 @@ relation_vector_add(relation_vector_t *rv, char *element_a, char *element_b) {
  */
 void relation_vector_print(relation_vector_t *rv) {
     for (int i = 0; i < rv->size; i++) {
-        printf("%s %s\n", rv->relations[i]->element_a,
-               rv->relations[i]->element_b);
+        relation_set_print(rv->relations[i]);
+        printf("\n");
     }
 }
 
 /**
- * Frees the memory of the relation_vector_t.
+ * Prints vector of relations.
  * @param rv The relation_vector_t.
  */
 void relation_vector_free(relation_vector_t *rv) {
     for (int i = 0; i < rv->size; i++) {
-        free(rv->relations[i]);
+        relation_set_free(rv->relations[i]);
     }
     free(rv->relations);
     free(rv);
 }
 
+/**
+ * Definition for relation table
+ */
 typedef struct {
     int rows;
     int columns;
@@ -2608,7 +2683,7 @@ relation_table_t *relation_table_init(set_t *row_items, set_t *column_items);
 
 relation_table_t *relation_table_init_relation(set_t *row_items,
                                                set_t *column_items,
-                                               relation_vector_t *rv);
+                                               relation_set_t *rv);
 
 void relation_table_add_relation(relation_table_t *rt, new_relations_t *r);
 
@@ -2648,12 +2723,12 @@ relation_table_t *relation_table_init(set_t *row_items, set_t *column_items) {
  * Initializes a relation_table_t using relation.
  * @param row_items The set of row items.
  * @param column_items The set of column items.
- * @param rv The relation_vector_t.
+ * @param rv The relation_set_t.
  * @return The initialized relation_table_t.
  */
 relation_table_t *relation_table_init_relation(set_t *row_items,
                                                set_t *column_items,
-                                               relation_vector_t *rv) {
+                                               relation_set_t *rv) {
     relation_table_t *rt = relation_table_init(row_items, column_items);
 
     for (int i = 0; i < rv->size; i++) {
@@ -2695,7 +2770,7 @@ void relation_table_print(relation_table_t *rt) {
 void relation_table_print_with_names(relation_table_t *rt) {
     printf("R ");
     for (int i = 0; i < rt->columns; i++) {
-        if (i  < rt->columns) {
+        if (i < rt->columns) {
             printf("%s ", rt->column_items->elements[i]);
         }
     }
@@ -2709,6 +2784,33 @@ void relation_table_print_with_names(relation_table_t *rt) {
     }
 }
 
+/**
+ * Relation helpers
+ */
+
+relation_set_t *command_to_relation_set(command_t *c);
+
+relation_set_t *command_to_relation_set(command_t *c) {
+    relation_set_t *rv = malloc(sizeof(relation_set_t));
+
+    for (int i = 1; i < c->args.size; i++) {
+        char *rel_str = strdup(c->args.elements[i]);
+        char *token = strtok(rel_str, " ");
+
+        vector_t *v2 = vector_init(2);
+
+        while (token != NULL) {
+            vector_add_no_transform(v2, token);
+            token = strtok(NULL, " ");
+        }
+
+        new_relations_t *new_rel = relation_init(v2->elements[0],
+                                                 v2->elements[1]);
+        relation_set_add_relation(rv, new_rel);
+    }
+
+    return rv;
+}
 
 /**
  * Relation math
@@ -2716,11 +2818,11 @@ void relation_table_print_with_names(relation_table_t *rt) {
 
 void rel_table(int **table, relation_t *rel_arr, set_t *univerzum);
 
-bool _relation_is_reflexive(relation_vector_t *rv, set_t *universe);
+bool _relation_is_reflexive(relation_set_t *rv, set_t *universe);
 
 bool relation_is_reflexive(int n, ...);
 
-bool _relation_is_symmetric(relation_vector_t *rv, set_t *universe);
+bool _relation_is_symmetric(relation_set_t *rv, set_t *universe);
 
 bool relation_is_symmetric(int n, ...);
 
@@ -2797,7 +2899,7 @@ void rel_table(int **table, relation_t *rel_arr, set_t *univerzum) {
  * @param universe The universe.
  * @return true if the relation is reflexive, false otherwise.
  */
-bool _relation_is_reflexive(relation_vector_t *rv, set_t *universe) {
+bool _relation_is_reflexive(relation_set_t *rv, set_t *universe) {
     relation_table_t *rt = relation_table_init_relation(
             universe, universe, rv);
 
@@ -2820,7 +2922,7 @@ bool relation_is_reflexive(int n, ...) {
     va_list args;
     va_start(args, n);
 
-    relation_vector_t *rv = va_arg(args, relation_vector_t *);
+    relation_set_t *rv = va_arg(args, relation_set_t *);
     set_t *univerzum = va_arg(args, set_t *);
 
     bool result = _relation_is_reflexive(rv, univerzum);
@@ -2836,7 +2938,7 @@ bool relation_is_reflexive(int n, ...) {
  * @param universe The universe.
  * @return true if the relation is symmetric, false otherwise.
  */
-bool _relation_is_symmetric(relation_vector_t *rv, set_t *universe) {
+bool _relation_is_symmetric(relation_set_t *rv, set_t *universe) {
     relation_table_t *rt = relation_table_init_relation(
             universe, universe, rv);
 
@@ -2861,7 +2963,7 @@ bool relation_is_symmetric(int n, ...) {
     va_list args;
     va_start(args, n);
 
-    relation_vector_t *rv = va_arg(args, relation_vector_t *);
+    relation_set_t *rv = va_arg(args, relation_set_t *);
     set_t *univerzum = va_arg(args, set_t *);
 
     bool result = _relation_is_symmetric(rv, univerzum);
