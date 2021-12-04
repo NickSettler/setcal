@@ -2605,13 +2605,13 @@ void relation_table_print_with_names(relation_table_t *rt) {
 
 void rel_table(int **table, relation_t *rel_arr, set_t *univerzum);
 
-bool _relation_is_reflexive(relation_t *rel_arr, set_t *univerzum);
+bool _relation_is_reflexive(relation_vector_t *rv, set_t *universe);
 
 bool relation_is_reflexive(int n, ...);
 
-bool _relation_is_symmetric(relation_t *rel_arr, set_t *univerzum);
+bool _relation_is_symmetric(relation_vector_t *rv, set_t *universe);
 
-bool relation_is_symmetric(int n, set_t *univerzum, ...);
+bool relation_is_symmetric(int n, ...);
 
 bool _relation_is_antisymmetric(relation_t *rel_arr, set_t *univerzum);
 
@@ -2683,17 +2683,19 @@ void rel_table(int **table, relations *rel_arr, set_t *univerzum) {
 /**
  * Checks if the relation is reflexive.
  * @param rel_arr The array of relation pairs.
- * @param univerzum The univerzum.
+ * @param universe The universe.
  * @return true if the relation is reflexive, false otherwise.
  */
-bool _relation_is_reflexive(relations *rel_arr, set_t *univerzum) {
-    int table[univerzum->size][univerzum->size];
-    rel_table(table, rel_arr, univerzum);
-    for (int i = 0; i < univerzum->size; i++) {
-        if (table[i][i] == 0) {
+bool _relation_is_reflexive(relation_vector_t *rv, set_t *universe) {
+    relation_table_t *rt = relation_table_init_relation(
+            universe, universe, rv);
+
+    for (int i = 0; i < universe->size; i++) {
+        if (rt->matrix[i][i] != 1) {
             return false;
         }
     }
+
     return true;
 }
 
@@ -2710,21 +2712,17 @@ bool relation_is_reflexive(int n, ...) {
     relation_vector_t *rv = va_arg(args, relation_vector_t *);
     set_t *univerzum = va_arg(args, set_t *);
 
-    for (int i = 0; i < n; i++) {
-        relation_t *r = va_arg(args, relation_t *);
-        if (!_relation_is_reflexive(r, univerzum)) {
-            va_end(args);
-            return false;
-        }
-    }
+    bool result = _relation_is_reflexive(rv, univerzum);
+
     va_end(args);
-    return true;
+
+    return result;
 }
 
 /**
  * Checks if the relation is symmetric.
  * @param rel_arr The array of relation pairs.
- * @param univerzum The univerzum.
+ * @param universe The universe.
  * @return true if the relation is symmetric, false otherwise.
  */
 bool _relation_is_symmetric(relations *rel_arr, set_t *univerzum) {
@@ -2737,6 +2735,7 @@ bool _relation_is_symmetric(relations *rel_arr, set_t *univerzum) {
             }
         }
     }
+
     return true;
 }
 
@@ -2746,7 +2745,7 @@ bool _relation_is_symmetric(relations *rel_arr, set_t *univerzum) {
  * @param ... The rows of relations.
  * @return True if the relation is symmetric, false otherwise.
  */
-bool relation_is_symmetric(int n, set_t *univerzum, ...) {
+bool relation_is_symmetric(int n, ...) {
     va_list args;
     va_start(args, univerzum);
 
