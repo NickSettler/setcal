@@ -2086,24 +2086,30 @@ void command_system_exec(command_system_t *cs) {
                         "Invalid command");
         }
 
-        if (strcmp(operation_name, "union") == 0) {
+        if (strcmp(operation_name, "empty") == 0) {
+            bool is_empty = set_is_empty(1, set_vector_find(cs->set_vector,
+                                                            first_index));
+
+            command_vector_replace(cs->cv, bool_to_command(is_empty), i);
+        } else if (strcmp(operation_name, "card") == 0) {
+            int card = set_card(1, set_vector_find(cs->set_vector,
+                                                   first_index));
+
+            command_vector_replace(cs->cv, int_to_command(card), i);
+        } else if (strcmp(operation_name, "complement") == 0) {
+            // @todo implement
+        } else if (strcmp(operation_name, "union") == 0) {
             set_t *s = set_union(
                     2,
                     set_vector_find(cs->set_vector, first_index),
                     set_vector_find(cs->set_vector, second_index));
             command_vector_replace(cs->cv, *set_to_command(s), i);
         } else if (strcmp(operation_name, "intersect") == 0) {
-
             set_t *s = set_intersection(
                     2,
                     set_vector_find(cs->set_vector, first_index),
                     set_vector_find(cs->set_vector, second_index));
             command_vector_replace(cs->cv, *set_to_command(s), i);
-        } else if (strcmp(operation_name, "empty") == 0) {
-            bool is_empty = set_is_empty(1, set_vector_find(cs->set_vector,
-                                                            first_index));
-
-            command_vector_replace(cs->cv, bool_to_command(is_empty), i);
         } else if (strcmp(operation_name, "minus") == 0) {
             set_t *s = set_diff(
                     2,
@@ -2111,6 +2117,12 @@ void command_system_exec(command_system_t *cs) {
                     set_vector_find(cs->set_vector, second_index));
 
             command_vector_replace(cs->cv, *set_to_command(s), i);
+        } else if (strcmp(operation_name, "subseteq") == 0) {
+            // @todo implement
+        } else if (strcmp(operation_name, "subset") == 0) {
+            // @todo implement
+        } else if (strcmp(operation_name, "equals") == 0) {
+            // @todo implement
         }
     }
 }
