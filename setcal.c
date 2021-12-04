@@ -297,7 +297,7 @@ void vector_add(vector_t *v, char *s) {
     v->elements[v->size] = remove_char(s, ' ');
     v->size++;
 
-    resize_all(v, find_max_vector_element_size(v));
+//    resize_all(v, find_max_vector_element_size(v));
 }
 
 bool vector_contains(vector_t *v, char *s) {
