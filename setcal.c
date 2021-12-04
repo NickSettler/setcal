@@ -1811,7 +1811,7 @@ bool operation_vector_contains(operation_vector_t *ov, char *name) {
 
 void print_operation_vector(operation_vector_t *ov) {
     for (int i = 0; i < ov->size; i++) {
-        printf("%s ", ov->operations[i]->name);
+        printf("%c: %s\n", ov->operations[i]->type, ov->operations[i]->name);
     }
 
     printf("\n");
