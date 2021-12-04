@@ -915,6 +915,8 @@ void add_command_arg(command_t *c, char *arg);
 
 set_t *command_to_set(command_t *c);
 
+command_t *command_copy(command_t *c);
+
 void print_command(command_t *c);
 
 void free_command(command_t *c);
@@ -997,6 +999,21 @@ set_t *command_to_set(command_t *c) {
     }
 
     return s;
+}
+
+/**
+ * Copies a command.
+ * @param c The command.
+ * @return The copy of the command.
+ */
+command_t *command_copy(command_t *c) {
+    command_t *c_copy = init_command_with_type(c->type);
+
+    for (int i = 0; i < c->args.size; i++) {
+        add_command_arg(c_copy, c->args.elements[i]);
+    }
+    
+    return c_copy;
 }
 
 /**
