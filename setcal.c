@@ -2469,8 +2469,59 @@ void relation_vector_free(relation_vector_t *rv) {
 }
 
 /**
- * function for file opening
+ * Relation math
  */
+
+void rel_table(int **table, relation_t *rel_arr, set_t *univerzum);
+
+bool _relation_is_reflexive(relation_t *rel_arr, set_t *univerzum);
+
+bool relation_is_reflexive(int n, ...);
+
+bool _relation_is_symmetric(relation_t *rel_arr, set_t *univerzum);
+
+bool relation_is_symmetric(int n, set_t *univerzum, ...);
+
+bool _relation_is_antisymmetric(relation_t *rel_arr, set_t *univerzum);
+
+bool relation_is_antisymmetric(int n, set_t *univerzum, ...);
+
+bool _relation_is_transitive(relation_t *rel_arr, set_t *univerzum);
+
+bool relation_is_transitive(int n, set_t *univerzum, ...);
+
+bool _relation_is_function(relation_t *rel_arr, set_t *univerzum);
+
+bool relation_is_function(int n, set_t *univerzum, ...);
+
+void
+not_univerzum_table(relation_t *rel_arr, set_t *s1, set_t *s2, int **table);
+
+void _relation_domain(relation_t *rel_arr, set_t *univerzum);
+
+void relation_domain(int n, set_t *univerzum, ...);
+
+void _relation_codomain(relation_t *rel_arr, set_t *univerzum);
+
+void relation_codomain(int n, set_t *univerzum, ...);
+
+bool _relation_is_injective(relation_t *rel_arr, set_t *s1, set_t *s2);
+
+bool relation_is_injective(int n, set_t *s1, set_t *s2, ...);
+
+bool _relation_is_surjective(relation_t *rel_arr, set_t *s1, set_t *s2);
+
+bool relation_is_surjective(int n, ...);
+
+bool _relation_is_bijective(relation_t *rel_arr, set_t *s1, set_t *s2);
+
+bool relation_is_bijective(int n, set_t *s1, set_t *s2, ...);
+
+bool antisymmetric(relation_t *rel_arr, set_t *univerzum);
+
+bool transitive(relation_t *rel_arr, set_t *univerzum);
+
+bool function(relation_t *rel_arr, set_t *univerzum);
 
 
 /**
@@ -2486,7 +2537,8 @@ void rel_table(int **table, relations *rel_arr, set_t *univerzum) {
         for (int j = 0; j < univerzum->size; j++) {
             if (strcmp(rel_arr->pairs[i][0], univerzum->elements[j]) == 0) {
                 for (int k = 0; k < univerzum->size; k++) {
-                    if (strcmp(rel_arr->pairs[i][1], univerzum->elements[k]) == 0) {
+                    if (strcmp(rel_arr->pairs[i][1], univerzum->elements[k]) ==
+                        0) {
                         table[j][k] = 1;
                         break;
                     }
@@ -2520,13 +2572,16 @@ bool _relation_is_reflexive(relations *rel_arr, set_t *univerzum) {
  * @param ... The rows of relations.
  * @return True if the relation is reflexive, false otherwise.
  */
-bool relation_is_reflexive(int n, set_t *univerzum, ...){
+bool relation_is_reflexive(int n, ...) {
     va_list args;
-    va_start(args, univerzum);
+    va_start(args, n);
 
-    for (int i = 0; i < n; i++){
-        relations *r = va_arg(args, relations *);
-        if (!_relation_is_reflexive(r, univerzum)){
+    relation_vector_t *rv = va_arg(args, relation_vector_t *);
+    set_t *univerzum = va_arg(args, set_t *);
+
+    for (int i = 0; i < n; i++) {
+        relation_t *r = va_arg(args, relation_t *);
+        if (!_relation_is_reflexive(r, univerzum)) {
             va_end(args);
             return false;
         }
@@ -2560,7 +2615,7 @@ bool _relation_is_symmetric(relations *rel_arr, set_t *univerzum) {
  * @param ... The rows of relations.
  * @return True if the relation is symmetric, false otherwise.
  */
-bool relation_is_symmetric(int n, set_t *univerzum, ...){
+bool relation_is_symmetric(int n, set_t *univerzum, ...) {
     va_list args;
     va_start(args, univerzum);
 
@@ -2600,7 +2655,7 @@ bool _relation_is_antisymmetric(relations *rel_arr, set_t *univerzum) {
  * @param ... The rows of relations.
  * @return True if the relation is antisymmetric, false otherwise.
  */
-bool relation_is_antisymmetric(int n, set_t *univerzum, ...){
+bool relation_is_antisymmetric(int n, set_t *univerzum, ...) {
     va_list args;
     va_start(args, univerzum);
 
@@ -2643,7 +2698,7 @@ bool _relation_is_transitive(relations *rel_arr, set_t *univerzum) {
  * @param ... The rows of relations.
  * @return True if the relation is transitive, false otherwise.
  */
-bool relation_is_transitive(int n, set_t *univerzum, ...){
+bool relation_is_transitive(int n, set_t *univerzum, ...) {
     va_list args;
     va_start(args, univerzum);
 
@@ -2686,7 +2741,7 @@ bool _relation_is_function(relations *rel_arr, set_t *univerzum) {
  * @param ... The rows of relations.
  * @return True if the relation is a function, false otherwise.
  */
-bool relation_is_function(int n, set_t *univerzum, ...){
+bool relation_is_function(int n, set_t *univerzum, ...) {
     va_list args;
     va_start(args, univerzum);
 
@@ -2736,27 +2791,26 @@ void not_univerzum_table(relations *rel_arr, set_t *s1, set_t *s2, int **table){
 void _relation_domain(relations *rel_arr, set_t *univerzum)
 {
     vector_t *domain = vector_init(univerzum->size);
-    for (int i = 0; i < rel_arr->count_pairs; i++){
+    for (int i = 0; i < rel_arr->count_pairs; i++) {
         int flag = 0;
-        for (int j = 0; j < univerzum->size; j++){
-            if (strcmp(rel_arr->pairs[i][0], univerzum->elements[j])==0){
-                for (int k = 0; k < univerzum->size; k++){
-                    if (strcmp(rel_arr->pairs[i][0], domain->elements[k]) == 0){
+        for (int j = 0; j < univerzum->size; j++) {
+            if (strcmp(rel_arr->pairs[i][0], univerzum->elements[j]) == 0) {
+                for (int k = 0; k < univerzum->size; k++) {
+                    if (strcmp(rel_arr->pairs[i][0], domain->elements[k]) ==
+                        0) {
                         flag = 1;
                         break;
                     }
                 }
-                if (flag == 0){
+                if (flag == 0) {
                     vector_add(domain, rel_arr->pairs[i][0]);
                 }
                 break;
             }
         }
     }
-    for(int i = 0; i < univerzum->size; i++)
-    {
-        if(strcmp(domain->elements[i], "") != 0)
-        {
+    for (int i = 0; i < univerzum->size; i++) {
+        if (strcmp(domain->elements[i], "") != 0) {
             printf("%s ", domain->elements[i]);
         }
 
@@ -2769,7 +2823,7 @@ void _relation_domain(relations *rel_arr, set_t *univerzum)
  * @param n The number of relations.
  * @param ... The rows of relations.
  */
-void relation_domain(int n, set_t *univerzum, ...){
+void relation_domain(int n, set_t *univerzum, ...) {
     va_list args;
     va_start(args, univerzum);
 
@@ -2788,27 +2842,26 @@ void relation_domain(int n, set_t *univerzum, ...){
 void _relation_codomain(relations *rel_arr, set_t *univerzum)
 {
     vector_t *codomain = vector_init(univerzum->size);
-    for (int i = 0; i < rel_arr->count_pairs; i++){
+    for (int i = 0; i < rel_arr->count_pairs; i++) {
         int flag = 0;
-        for (int j = 0; j < univerzum->size; j++){
-            if (strcmp(rel_arr->pairs[i][1], univerzum->elements[j])==0){
-                for (int k = 0; k < univerzum->size; k++){
-                    if (strcmp(rel_arr->pairs[i][1], codomain->elements[k]) == 0){
+        for (int j = 0; j < univerzum->size; j++) {
+            if (strcmp(rel_arr->pairs[i][1], univerzum->elements[j]) == 0) {
+                for (int k = 0; k < univerzum->size; k++) {
+                    if (strcmp(rel_arr->pairs[i][1], codomain->elements[k]) ==
+                        0) {
                         flag = 1;
                         break;
                     }
                 }
-                if (flag == 0){
+                if (flag == 0) {
                     vector_add(codomain, rel_arr->pairs[i][0]);
                 }
                 break;
             }
         }
     }
-    for(int i = 0; i < univerzum->size; i++)
-    {
-        if(strcmp(codomain->elements[i], "") != 0)
-        {
+    for (int i = 0; i < univerzum->size; i++) {
+        if (strcmp(codomain->elements[i], "") != 0) {
             printf("%s ", codomain[i]);
         }
 
@@ -2822,7 +2875,7 @@ void _relation_codomain(relations *rel_arr, set_t *univerzum)
  * @param n The number of relations.
  * @param ... The rows of relations.
  */
-void relation_codomain(int n, set_t *univerzum, ...){
+void relation_codomain(int n, set_t *univerzum, ...) {
     va_list args;
     va_start(args, univerzum);
 
@@ -2845,24 +2898,24 @@ bool _relation_is_injective(relations *rel_arr, set_t *s1, set_t *s2)
     int table[s1->size][s2->size];
     not_univerzum_table(rel_arr, s1, s2, table);
 
-    for (int i = 0; i < s1->size; i++){
+    for (int i = 0; i < s1->size; i++) {
         int total_in_row = 0;
-        for (int j = 0; j < s2->size; j++){
-            if (table[i][j] == 1){
+        for (int j = 0; j < s2->size; j++) {
+            if (table[i][j] == 1) {
                 total_in_row++;
             }
-            if (total_in_row != 1){     //it has to be a function as well
+            if (total_in_row != 1) {     //it has to be a function as well
                 return false;
             }
         }
     }
-    for (int i = 0; i < s2->size; i++){
+    for (int i = 0; i < s2->size; i++) {
         int total_in_column = 0;
-        for (int j = 0; j < s1->size; j++){
-            if (table[j][i] == 1){
+        for (int j = 0; j < s1->size; j++) {
+            if (table[j][i] == 1) {
                 total_in_column++;
             }
-            if (total_in_column > 1){
+            if (total_in_column > 1) {
                 return false;
             }
         }
@@ -2878,7 +2931,7 @@ bool _relation_is_injective(relations *rel_arr, set_t *s1, set_t *s2)
  * @param ... The rows of relations.
  * @return True if the relation is injective, false otherwise.
  */
-bool relation_is_injective(int n, set_t *s1, set_t *s2, ...){
+bool relation_is_injective(int n, set_t *s1, set_t *s2, ...) {
     va_list args;
     va_start(args, s2);
 
@@ -2905,24 +2958,24 @@ bool _relation_is_surjective(relations *rel_arr, set_t *s1, set_t *s2)
     int table[s1->size][s2->size];
     not_univerzum_table(rel_arr, s1, s2, table);
 
-    for (int i = 0; i < s1->size; i++){
+    for (int i = 0; i < s1->size; i++) {
         int total_in_row = 0;
-        for (int j = 0; j < s2->size; j++){
-            if (table[i][j] == 1){
+        for (int j = 0; j < s2->size; j++) {
+            if (table[i][j] == 1) {
                 total_in_row++;
             }
-            if (total_in_row != 1){     //it has to be a function as well
+            if (total_in_row != 1) {     //it has to be a function as well
                 return false;
             }
         }
     }
-    for (int i = 0; i < s2->size; i++){
+    for (int i = 0; i < s2->size; i++) {
         int total_in_column = 0;
-        for (int j = 0; j < s1->size; j++){
-            if (table[j][i] == 1){
+        for (int j = 0; j < s1->size; j++) {
+            if (table[j][i] == 1) {
                 total_in_column++;
             }
-            if (total_in_column == 0){
+            if (total_in_column == 0) {
                 return false;
             }
         }
@@ -2938,9 +2991,9 @@ bool _relation_is_surjective(relations *rel_arr, set_t *s1, set_t *s2)
  * @param ... The rows of relations.
  * @return True if the relation is surjective, false otherwise.
  */
-bool relation_is_surjective(int n, set_t *s1, set_t *s2, ...){
+bool relation_is_surjective(int n, ...) {
     va_list args;
-    va_start(args, s2);
+    va_start(args, n);
 
     for (int i = 0; i < n; i++){
         relations *r = va_arg(args, relations *);
@@ -2949,6 +3002,7 @@ bool relation_is_surjective(int n, set_t *s1, set_t *s2, ...){
             return false;
         }
     }
+
     va_end(args);
     return true;
 }
@@ -2964,8 +3018,7 @@ bool _relation_is_bijective(relations *rel_arr, set_t *s1, set_t *s2)
 {
     if (_relation_is_injective(rel_arr, s1, s2) == true && _relation_is_surjective(rel_arr, s1, s2) == true){
         return true;
-    }
-    else{
+    } else {
         return false;
     }
 }
@@ -2978,7 +3031,7 @@ bool _relation_is_bijective(relations *rel_arr, set_t *s1, set_t *s2)
  * @param ... The rows of relations.
  * @return True if the relation is bijective, false otherwise.
  */
-bool relation_is_bijective(int n, set_t *s1, set_t *s2, ...){
+bool relation_is_bijective(int n, set_t *s1, set_t *s2, ...) {
     va_list args;
     va_start(args, s2);
 
@@ -2989,6 +3042,7 @@ bool relation_is_bijective(int n, set_t *s1, set_t *s2, ...){
             return false;
         }
     }
+
     va_end(args);
     return true;
 }
