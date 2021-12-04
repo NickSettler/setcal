@@ -267,6 +267,8 @@ void resize_all(vector_t *v, unsigned int max);
 
 void vector_add(vector_t *v, char *s);
 
+void vector_add_no_transform(vector_t *v, char *s);
+
 bool vector_contains(vector_t *v, char *s);
 
 void vector_remove(vector_t *v, int index);
@@ -348,6 +350,25 @@ void vector_add(vector_t *v, char *s) {
     v->size++;
 
 //    resize_all(v, find_max_vector_element_size(v));
+}
+
+/**
+ * Adds a string to the vector without transforming it.
+ * @param v The vector.
+ * @param s The string.
+ */
+void vector_add_no_transform(vector_t *v, char *s) {
+    if (v->size == v->capacity) {
+        v->capacity *= 2;
+        v->elements = (char **) realloc(v->elements,
+                                        v->capacity * sizeof(char *));
+
+        if (v->elements == NULL) {
+            print_error(__FILENAME__, __LINE__, __func__, "Realloc failed");
+        }
+    }
+    v->elements[v->size] = s;
+    v->size++;
 }
 
 bool vector_contains(vector_t *v, char *s) {
