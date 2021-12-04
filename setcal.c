@@ -3184,35 +3184,42 @@ bool relation_is_bijective(int n, set_t *s1, set_t *s2, ...) {
  * @return 0 if the program ran successfully, 1 otherwise.
  */
 int main(int argc, char *argv[]) {
-    if (argc != 2)
-        print_error(__FILENAME__, __LINE__, __func__,
-                    "Invalid number of arguments");
-
-    command_system_t *cs = command_system_init(argv[1]);
-
-    command_system_exec(cs);
-
-    command_vector_print(cs->cv);
-
-    command_system_free(cs);
-
-//    set_t *s1 = set_init(1);
-//    set_add(s1, "a");
-//    set_add(s1, "b");
-//    set_add(s1, "c");
-//    set_add(s1, "d");
+//    if (argc != 2)
+//        print_error(__FILENAME__, __LINE__, __func__,
+//                    "Invalid number of arguments");
 //
-//    relation_vector_t *rv = relation_vector_init(1);
+//    command_system_t *cs = command_system_init(argv[1]);
 //
-//    relation_vector_add(rv, "a", "b");
-//    relation_vector_add(rv, "a", "c");
-//    relation_vector_add(rv, "b", "c");
+//    command_system_exec(cs);
 //
+//    command_vector_print(cs->cv);
+//
+//    command_system_free(cs);
+
+    set_t *s1 = set_init(1);
+    set_add(s1, "a");
+    set_add(s1, "b");
+    set_add(s1, "c");
+    set_add(s1, "d");
+
+    relation_vector_t *rv = relation_vector_init(1);
+
+    relation_vector_add(rv, "a", "a");
+    relation_vector_add(rv, "b", "b");
+    relation_vector_add(rv, "c", "c");
+    relation_vector_add(rv, "d", "d");
+    relation_vector_add(rv, "a", "d");
+    relation_vector_add(rv, "d", "a");
+
 //    relation_vector_print(rv);
-//
-//    bool is_reflexive = relation_is_reflexive(3, rv, s1);
-//
-//    relation_vector_free(rv);
+
+    relation_table_t *rt = relation_table_init_relation(s1, s1, rv);
+    relation_table_print_with_names(rt);
+
+    bool is_reflexive = relation_is_symmetric(2, rv, s1);
+    printf("Is reflexive: %s\n", is_reflexive ? "true" : "false");
+
+    relation_vector_free(rv);
 
     return 0;
 }
