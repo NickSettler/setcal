@@ -596,9 +596,9 @@ set_t *_set_diff(set_t *s1, set_t *s2);
 
 set_t *set_diff(int n, ...);
 
-bool _set_is_subset(set_t *s1, set_t *s2);
+bool _set_is_subseteq(set_t *s1, set_t *s2);
 
-bool set_is_subset(int n, ...);
+bool set_is_subseteq(int n, ...);
 
 bool _set_is_equal(set_t *s1, set_t *s2);
 
@@ -841,9 +841,8 @@ set_t *set_diff(int n, ...) {
  * @param s2 The second set.
  * @return true if the first set is a subset of the second set, false otherwise.
  */
-bool _set_is_subset(set_t *s1, set_t *s2) {
+bool _set_is_subseteq(set_t *s1, set_t *s2) {
     for (int i = 0; i < s1->size; i++) {
-
         bool is_in_set = false;
 
         for (int j = 0; j < s2->size; j++) {
@@ -866,14 +865,14 @@ bool _set_is_subset(set_t *s1, set_t *s2) {
  * @param ... The sets.
  * @return true if the first set is a subset of the second set, false otherwise.
  */
-bool set_is_subset(int n, ...) {
+bool set_is_subseteq(int n, ...) {
     va_list sets;
     va_start(sets, n);
 
     set_t *s1 = va_arg(sets, set_t *);
     set_t *s2 = va_arg(sets, set_t *);
 
-    bool is_subset = _set_is_subset(s1, s2);
+    bool is_subset = _set_is_subseteq(s1, s2);
 
     va_end(sets);
 
@@ -2150,7 +2149,12 @@ void command_system_exec(command_system_t *cs) {
 
             command_vector_replace(cs->cv, *set_to_command(s), i);
         } else if (strcmp(operation_name, "subseteq") == 0) {
-            // @todo implement
+            bool is_subseteq = set_is_subseteq(
+                    2,
+                    set_vector_find(cs->set_vector, first_index),
+                    set_vector_find(cs->set_vector, second_index));
+
+            command_vector_replace(cs->cv, bool_to_command(is_subseteq), i);
         } else if (strcmp(operation_name, "subset") == 0) {
             // @todo implement
         } else if (strcmp(operation_name, "equals") == 0) {
