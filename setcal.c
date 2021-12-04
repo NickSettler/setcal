@@ -44,6 +44,8 @@ void print_error(const char *filename, int line, const char *function,
  * -----------------------------------------------------------------------------
  */
 
+char *int_to_string(int number);
+
 char *pad_string(char *str, unsigned int max);
 
 char *replace_char(char *str, char s, char r);
@@ -53,6 +55,24 @@ char *remove_char(char *str, char r);
 void remove_spaces(char *str);
 
 void remove_newlines(char *str);
+
+
+/**
+ * Convert int to string.
+ * @param number The number to convert.
+ * @return The string representation of the number.
+ */
+char *int_to_string(int number) {
+    char *str;
+    str = (char *) malloc(sizeof(char) * 10);
+
+    if (str == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "malloc failed");
+
+
+    sprintf(str, "%d", number);
+    return str;
+}
 
 /**
  * Pads the string with spaces at the end.
