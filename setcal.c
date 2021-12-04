@@ -1915,11 +1915,6 @@ command_vector_t *parse_file(char *filename) {
  * -----------------------------------------------------------------------------
  */
 
-typedef struct {
-    char ***pairs;
-    int count_pairs;
-} relations;
-
 /**
  * Initializes an operation.
  * @param name The name.
@@ -2347,47 +2342,131 @@ void command_system_free(command_system_t *cs) {
 }
 
 /**
- * Definition for relations
+ * Definition for relation_t
  */
 
-/**
- * Prototypes of functions
- */
-void rel_table(int **table, relations *rel_arr, set_t *univerzum);
+typedef struct {
+    char ***pairs;
+    int count_pairs;
+} relation_t;
 
-bool reflexive(relations *rel_arr, set_t *univerzum);
+typedef struct {
+    char *element_a;
+    char *element_b;
+} new_relations_t;
 
-bool symmetric(relations *rel_arr, set_t *univerzum);
+new_relations_t relation_init(char *element_a, char *element_b) {
+    new_relations_t new_relations;
 
-bool antisymmetric(relations *rel_arr, set_t *univerzum);
+    new_relations.element_a = element_a;
+    new_relations.element_b = element_b;
 
-bool transitive(relations *rel_arr, set_t *univerzum);
-
-bool function(relations *rel_arr, set_t *univerzum);
-
-
-/**
- * Main function.
- * @param argc The number of arguments.
- * @param argv The arguments.
- * @return 0 if the program ran successfully, 1 otherwise.
- */
-int main(int argc, char *argv[]) {
-    if (argc != 2)
-        print_error(__FILENAME__, __LINE__, __func__,
-                    "Invalid number of arguments");
-
-    command_system_t *cs = command_system_init(argv[1]);
-
-    command_system_exec(cs);
-
-    command_vector_print(cs->cv);
-
-    command_system_free(cs);
-
-    return 0;
+    return new_relations;
 }
 
+void relation_print(new_relations_t *r) {
+    if (r == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
+
+    printf("%s %s\n", r->element_a, r->element_b);
+}
+
+void relation_free(new_relations_t *r) {
+    if (r == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
+
+    free(r->element_a);
+    free(r->element_b);
+    free(r);
+}
+
+/**
+* Definition for relations vector
+*/
+
+typedef struct {
+    int size;
+    int capacity;
+    new_relations_t **relations;
+} relation_vector_t;
+
+relation_vector_t *relation_vector_init(int capacity);
+
+/**
+ * Initializes a relation_vector_t.
+ * @param capacity The capacity of the relation_vector_t.
+ * @return The initialized relation_vector_t.
+ */
+relation_vector_t *relation_vector_init(int capacity) {
+    relation_vector_t *rv = malloc(sizeof(relation_vector_t));
+
+    rv->size = 0;
+    rv->capacity = capacity;
+    rv->relations = malloc(sizeof(new_relations_t *) * capacity);
+
+    return rv;
+}
+
+/**
+ * Adds a new relation to the relation_vector_t.
+ * @param rv The relation_vector_t.
+ * @param r The relation_t.
+ */
+void relation_vector_add_relation(relation_vector_t *rv, new_relations_t *r) {
+    if (rv->size == rv->capacity) {
+        rv->capacity += 1;
+        rv->relations = realloc(rv->relations,
+                                sizeof(new_relations_t *) * rv->capacity);
+    }
+
+    rv->relations[rv->size] = r;
+    rv->size++;
+}
+
+/**
+ * Checks if the relation_vector_t is injective.
+ * @param rv The relation_vector_t.
+ * @param element_a The first element.
+ * @param element_b The second element.
+ */
+void
+relation_vector_add(relation_vector_t *rv, char *element_a, char *element_b) {
+    if (rv->size == rv->capacity) {
+        rv->capacity += 1;
+        rv->relations = realloc(rv->relations,
+                                sizeof(new_relations_t *) * rv->capacity);
+    }
+
+    new_relations_t *r = malloc(sizeof(new_relations_t));
+
+    r->element_a = element_a;
+    r->element_b = element_b;
+
+    relation_vector_add_relation(rv, r);
+}
+
+/**
+ * Prints vector of relations.
+ * @param rv The relation_vector_t.
+ */
+void relation_vector_print(relation_vector_t *rv) {
+    for (int i = 0; i < rv->size; i++) {
+        printf("%s %s\n", rv->relations[i]->element_a,
+               rv->relations[i]->element_b);
+    }
+}
+
+/**
+ * Frees the memory of the relation_vector_t.
+ * @param rv The relation_vector_t.
+ */
+void relation_vector_free(relation_vector_t *rv) {
+    for (int i = 0; i < rv->size; i++) {
+        free(rv->relations[i]);
+    }
+    free(rv->relations);
+    free(rv);
+}
 
 /**
  * function for file opening
@@ -2912,4 +2991,44 @@ bool relation_is_bijective(int n, set_t *s1, set_t *s2, ...){
     }
     va_end(args);
     return true;
+}
+
+/**
+ * Main function.
+ * @param argc The number of arguments.
+ * @param argv The arguments.
+ * @return 0 if the program ran successfully, 1 otherwise.
+ */
+int main(int argc, char *argv[]) {
+    if (argc != 2)
+        print_error(__FILENAME__, __LINE__, __func__,
+                    "Invalid number of arguments");
+
+    command_system_t *cs = command_system_init(argv[1]);
+
+    command_system_exec(cs);
+
+    command_vector_print(cs->cv);
+
+    command_system_free(cs);
+
+//    set_t *s1 = set_init(1);
+//    set_add(s1, "a");
+//    set_add(s1, "b");
+//    set_add(s1, "c");
+//    set_add(s1, "d");
+//
+//    relation_vector_t *rv = relation_vector_init(1);
+//
+//    relation_vector_add(rv, "a", "b");
+//    relation_vector_add(rv, "a", "c");
+//    relation_vector_add(rv, "b", "c");
+//
+//    relation_vector_print(rv);
+//
+//    bool is_reflexive = relation_is_reflexive(3, rv, s1);
+//
+//    relation_vector_free(rv);
+
+    return 0;
 }
