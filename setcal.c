@@ -132,7 +132,7 @@ char *replace_char(char *str, char s, char r) {
         print_error(__FILENAME__, __LINE__, __func__, "strcpy failed");
     }
 
-    for (int i = 0; i < strlen(str); i++) {
+    for (unsigned int i = 0; i < strlen(str); i++) {
         if (str[i] == s) {
             new_str[i] = r;
         }
@@ -155,7 +155,7 @@ char *remove_char(char *str, char r) {
     }
 
     int j = 0;
-    for (int i = 0; i < strlen(str); i++) {
+    for (unsigned int i = 0; i < strlen(str); i++) {
         if (str[i] != r) {
             new_str[j] = str[i];
             j++;
@@ -547,9 +547,9 @@ typedef struct set_vector_t {
 
 set_vector_t *set_vector_init(int capacity);
 
-void set_vector_add(set_vector_t *sv, set_t *s, int index);
+void set_vector_add(set_vector_t *sv, set_t *s, unsigned int index);
 
-set_t *set_vector_find(set_vector_t *sv, int index);
+set_t *set_vector_find(set_vector_t *sv, unsigned int index);
 
 void set_vector_print(set_vector_t *sv);
 
@@ -585,7 +585,7 @@ set_vector_t *set_vector_init(int capacity) {
  * @param s The set to add.
  * @param index The index of the set.
  */
-void set_vector_add(set_vector_t *sv, set_t *s, int index) {
+void set_vector_add(set_vector_t *sv, set_t *s, unsigned int index) {
     if (sv->size == sv->capacity) {
         sv->capacity *= 2;
         sv->sets = realloc(sv->sets, sizeof(set_t *) * sv->capacity);
@@ -606,7 +606,7 @@ void set_vector_add(set_vector_t *sv, set_t *s, int index) {
  * @param index The index of the set.
  * @return The set.
  */
-set_t *set_vector_find(set_vector_t *sv, int index) {
+set_t *set_vector_find(set_vector_t *sv, unsigned int index) {
     for (int i = 0; i < sv->size; i++) {
         if (sv->sets[i]->index == index) {
             return sv->sets[i];
