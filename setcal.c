@@ -1356,6 +1356,8 @@ command_t *parse_command(char *s) {
         c->type = R;
     } else if (strcmp(args->elements[0], "C") == 0) {
         c->type = C;
+    } else {
+        print_error(__FILENAME__, __LINE__, __FUNCTION__, "Invalid command");
     }
 
     vector_remove(args, 0);
@@ -1503,6 +1505,13 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
                     "Commands count is greater than 1000");
 
     /**
+     * Universe command is required.
+     */
+    if (u_command == NULL)
+        print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                    "Universe command is required");
+
+    /**
      * Maximum element size in universe is 30.
      */
     for (int i = 0; i < u_command->args.size; i++) {
@@ -1585,6 +1594,21 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
     if (unique_command_types->size < 2) {
         print_error(__FILENAME__, __LINE__, __FUNCTION__,
                     "File must contain at least two commands");
+    }
+
+    /**
+     * Commands must contain at least one S or R command
+     */
+    for (int i = 0; i < unique_command_types->size; i++) {
+        if (strcmp(unique_command_types->elements[i], "S") == 0 ||
+            strcmp(unique_command_types->elements[i], "R") == 0) {
+            break;
+        }
+
+        if (i == unique_command_types->size - 1) {
+            print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                        "No S or R commands found");
+        }
     }
 
 
