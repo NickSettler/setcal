@@ -1917,8 +1917,6 @@ void command_system_init_base(command_system_t *cs) {
     };
 
     for (int i = 0; i < SET_OPERATIONS_COUNT; i++) {
-        if (strcmp(set_operations[i], "empty") == 0) continue;
-
         operation_vector_add(cs->operation_vector,
                              operation_init(set_operations[i], U));
     }
