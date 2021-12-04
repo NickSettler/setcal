@@ -1215,8 +1215,6 @@ command_t *parse_command(char *s) {
         c->type = R;
     } else if (strcmp(args->elements[0], "C") == 0) {
         c->type = C;
-    } else {
-        print_error(__FILENAME__, __LINE__, __FUNCTION__, "Invalid command");
     }
 
     vector_remove(args, 0);
@@ -1349,6 +1347,8 @@ void command_vector_replace(command_vector_t *cv, command_t c, int index) {
                     "Index out of bounds");
 
     cv->commands[index] = c;
+
+    command_system_init_vectors(cv->system);
 }
 
 /**
@@ -2005,6 +2005,7 @@ command_system_t *command_system_init(char *filename) {
 
     cs->filename = filename;
     cs->cv = parse_file(filename);
+    attach_command_system(cs->cv, cs);
 
     command_system_init_base(cs);
     command_system_validate(cs);
