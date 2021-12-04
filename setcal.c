@@ -50,6 +50,10 @@ char *pad_string(char *str, unsigned int max);
 
 char *replace_char(char *str, char s, char r);
 
+int find_substr(const char *str, const char *substr);
+
+char *replace_substring(char *str, char *s, char *r);
+
 char *remove_char(char *str, char r);
 
 void remove_spaces(char *str);
@@ -140,6 +144,52 @@ char *replace_char(char *str, char s, char r) {
     new_str[strlen(str)] = '\0';
     return new_str;
 }
+
+int find_substr(const char *str, const char *substr) {
+    int i, j, k;
+
+    for (i = 0; str[i] != '\0'; i++) {
+        for (j = i, k = 0; substr[k] != '\0' && str[j] == substr[k]; j++, k++);
+
+        if (substr[k] == '\0')
+            return i;
+    }
+
+    return -1;
+}
+
+
+char *replace_substring(char *str, char *substr, char *new_substr) {
+    int i, j, k, l;
+    int substr_len = (int) strlen(substr);
+    int new_substr_len = (int) strlen(new_substr);
+    int str_len = (int) strlen(str);
+
+    int substr_pos = find_substr(str, substr);
+
+    if (substr_pos == -1)
+        return str;
+
+    char *new_str = malloc(str_len + 1);
+
+    for (i = 0; i < substr_pos; i++)
+        new_str[i] = str[i];
+
+    for (j = 0, k = substr_pos, l = 0; l < new_substr_len; j++, k++, l++)
+        new_str[k] = new_substr[l];
+
+    for (i = substr_pos + substr_len; i < str_len; i++)
+        new_str[k++] = str[i];
+
+    new_str[k] = '\0';
+
+    if (find_substr(new_str, substr) != -1) {
+        new_str = replace_substring(new_str, substr, new_substr);
+    }
+
+    return new_str;
+}
+
 
 /**
  * Removes spaces everywhere in the string.
