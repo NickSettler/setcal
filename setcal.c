@@ -1110,6 +1110,12 @@ void free_command(command_t *c);
 
 command_t *parse_command(char *s);
 
+command_t bool_to_command(bool b);
+
+command_t int_to_command(int i);
+
+command_t *set_to_command(set_t *s);
+
 /**
  * Command system definition
  */
@@ -1356,6 +1362,11 @@ command_t *parse_command(char *s) {
     return c;
 }
 
+/**
+ * Converts boolean to command.
+ * @param b The boolean.
+ * @return The command.
+ */
 command_t bool_to_command(bool b) {
     command_t *c = init_command();
 
@@ -1365,6 +1376,11 @@ command_t bool_to_command(bool b) {
     return *c;
 }
 
+/**
+ * Converts integer to command.
+ * @param i The integer.
+ * @return The command.
+ */
 command_t int_to_command(int i) {
     command_t *c = init_command();
 
@@ -1374,7 +1390,11 @@ command_t int_to_command(int i) {
     return *c;
 }
 
-// create a function to convert set to command
+/**
+ * Convert set to command.
+ * @param s The set.
+ * @return The command.
+ */
 command_t *set_to_command(set_t *s) {
     command_t *c = init_command();
     vector_t *args = vector_init(1);
