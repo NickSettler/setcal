@@ -384,9 +384,11 @@ void vector_free(vector_t *v) {
 
     for (int i = 0; i < v->size; i++) {
         free(v->elements[i]);
+        v->elements[i] = NULL;
     }
+
     free(v->elements);
-    free(v);
+    v->elements = NULL;
 }
 
 /**
@@ -1316,7 +1318,7 @@ void free_command(command_t *c) {
     if (c->args.size == 0)
         print_error(__FILENAME__, __LINE__, __FUNCTION__, "Invalid args");
 
-    vector_free(&c->args);
+    vector_free(&(c->args));
     free(c);
 }
 
