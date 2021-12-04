@@ -1896,10 +1896,10 @@ command_vector_t *parse_file(char *filename) {
     if (fp == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "File not found");
 
-    char *line = NULL;
+    char line[300];
     size_t len = 0;
 
-    while (getline(&line, &len, fp) != -1) {
+    while (fgets(line, 255, fp) != NULL) {
         command_t *c = parse_command(line);
         command_vector_add(cv, *c);
     }
