@@ -277,6 +277,8 @@ void vector_foreach(vector_t *v, void (*f)(char *));
 
 void vector_free(vector_t *v);
 
+vector_t *string_to_vector(char *str, const char *delim);
+
 /**
  * Initializes the vector
  * @param capacity The capacity of the vector.
@@ -394,6 +396,22 @@ void vector_remove(vector_t *v, int index) {
         v->elements[i] = v->elements[i + 1];
     }
     v->size--;
+}
+
+/**
+ * Converts string to vector.
+ * @param str String to convert.
+ * @param delim Delimiter.
+ * @return Vector with items from string separated by delimiter.
+ */
+vector_t *string_to_vector(char *str, const char *delim) {
+    vector_t *v = vector_init(1);
+    char *token = strtok(str, delim);
+    while (token != NULL) {
+        vector_add_no_transform(v, token);
+        token = strtok(NULL, delim);
+    }
+    return v;
 }
 
 /**
