@@ -415,6 +415,8 @@ void set_add_row(set_t *s, int row);
 
 void set_print(set_t *s);
 
+void set_free(set_t *s);
+
 /**
  * Creates a new set.
  * @param capacity The initial capacity of the set.
@@ -502,6 +504,30 @@ void set_print(set_t *s) {
     printf("\n");
 }
 
+void set_free(set_t *s) {
+    if (s == NULL) {
+        print_error(__FILENAME__, __LINE__, __func__, "Set is NULL");
+    }
+
+    if (s->elements == NULL) {
+        print_error(__FILENAME__, __LINE__, __func__,
+                    "Set elements are NULL");
+    }
+
+    for (int i = 0; i < s->size; i++) {
+        if (s->elements[i] == NULL) {
+            print_error(__FILENAME__, __LINE__, __func__,
+                        "Set element is NULL");
+        }
+    }
+
+    for (int i = 0; i < s->size; i++) {
+        free(s->elements[i]);
+    }
+    free(s->elements);
+    free(s);
+}
+
 /**
  * -----------------------------------------------------------------------------
  * SET MODULE [SET VECTOR]
@@ -517,6 +543,21 @@ typedef struct set_vector_t {
     set_t **sets;
 } set_vector_t;
 
+set_vector_t *set_vector_init(int capacity);
+
+void set_vector_add(set_vector_t *sv, set_t *s, int index);
+
+set_t *set_vector_find(set_vector_t *sv, int index);
+
+void set_vector_print(set_vector_t *sv);
+
+void set_vector_free(set_vector_t *sv);
+
+/**
+ * Creates a new set vector.
+ * @param capacity The initial capacity of the set vector.
+ * @return The new set vector.
+ */
 set_vector_t *set_vector_init(int capacity) {
     if (capacity < 1)
         print_error(__FILENAME__, __LINE__, __func__, "Invalid capacity");
@@ -536,7 +577,12 @@ set_vector_t *set_vector_init(int capacity) {
     return sv;
 }
 
-// create a function to add to vector
+/**
+ * Adds a set to the set vector.
+ * @param sv The set vector.
+ * @param s The set to add.
+ * @param index The index of the set.
+ */
 void set_vector_add(set_vector_t *sv, set_t *s, int index) {
     if (sv->size == sv->capacity) {
         sv->capacity *= 2;
@@ -552,8 +598,12 @@ void set_vector_add(set_vector_t *sv, set_t *s, int index) {
     sv->size++;
 }
 
-
-// create a function to find vector by index property
+/**
+ * Finds a set in the set vector.
+ * @param sv The set vector.
+ * @param index The index of the set.
+ * @return The set.
+ */
 set_t *set_vector_find(set_vector_t *sv, int index) {
     for (int i = 0; i < sv->size; i++) {
         if (sv->sets[i]->index == index) {
@@ -563,11 +613,22 @@ set_t *set_vector_find(set_vector_t *sv, int index) {
     return NULL;
 }
 
-
+/**
+ * Prints the set vector.
+ * @param sv The set vector.
+ */
 void set_vector_print(set_vector_t *sv) {
     for (int i = 0; i < sv->size; i++) {
         set_print(sv->sets[i]);
     }
+}
+
+void set_vector_free(set_vector_t *sv) {
+    for (int i = 0; i < sv->size; i++) {
+        set_free(sv->sets[i]);
+    }
+    free(sv->sets);
+    free(sv);
 }
 
 /**
