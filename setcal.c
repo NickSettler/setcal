@@ -604,6 +604,10 @@ bool _set_is_subseteq(set_t *s1, set_t *s2);
 
 bool set_is_subseteq(int n, ...);
 
+bool _set_is_subset(set_t *s1, set_t *s2);
+
+bool set_is_subset(int n, ...);
+
 bool _set_is_equal(set_t *s1, set_t *s2);
 
 bool set_is_equal(int n, ...);
@@ -877,6 +881,36 @@ bool set_is_subseteq(int n, ...) {
     set_t *s2 = va_arg(sets, set_t *);
 
     bool is_subset = _set_is_subseteq(s1, s2);
+
+    va_end(sets);
+
+    return is_subset;
+}
+
+/**
+ * Checks if the first set is a superset of the second set.
+ * @param s1 The first set.
+ * @param s2 The second set.
+ * @return true if the first set is a superset of the second set, false otherwise.
+ */
+bool _set_is_subset(set_t *s1, set_t *s2) {
+    return _set_is_subseteq(s1, s2) && !_set_is_equal(s1, s2);
+}
+
+/**
+ * Checks if the first set is a superset of the second set.
+ * @param n The number of sets.
+ * @param ... The sets.
+ * @return
+ */
+bool set_is_subset(int n, ...) {
+    va_list sets;
+    va_start(sets, n);
+
+    set_t *s1 = va_arg(sets, set_t *);
+    set_t *s2 = va_arg(sets, set_t *);
+
+    bool is_subset = _set_is_subset(s1, s2);
 
     va_end(sets);
 
@@ -2160,7 +2194,12 @@ void command_system_exec(command_system_t *cs) {
 
             command_vector_replace(cs->cv, bool_to_command(is_subseteq), i);
         } else if (strcmp(operation_name, "subset") == 0) {
-            // @todo implement
+            bool is_subset = set_is_subset(
+                    2,
+                    set_vector_find(cs->set_vector, first_index),
+                    set_vector_find(cs->set_vector, second_index));
+
+            command_vector_replace(cs->cv, bool_to_command(is_subset), i);
         } else if (strcmp(operation_name, "equals") == 0) {
             bool is_equals = set_is_equal(
                     2,
