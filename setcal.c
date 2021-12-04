@@ -1503,6 +1503,15 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
                     "Commands count is greater than 1000");
 
     /**
+     * Maximum element size in universe is 30.
+     */
+    for (int i = 0; i < u_command->args.size; i++) {
+        if (strlen(u_command->args.elements[i]) > 30)
+            print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                        "U command elements are greater than 30");
+    }
+
+    /**
      * Commands vector must contain only the following commands: U, S, R, C.
      */
     for (int i = 0; i < cv->size; i++) {
