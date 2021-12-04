@@ -1244,6 +1244,13 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
     vector_t *unique_command_types = get_unique_command_types(cv);
 
     /**
+     * Commands vector maximum size is 1000.
+     */
+    if (cv->size > 1000)
+        print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                    "Commands count is greater than 1000");
+
+    /**
      * Commands vector must contain only the following commands: U, S, R, C.
      */
     for (int i = 0; i < cv->size; i++) {
