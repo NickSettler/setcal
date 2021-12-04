@@ -1310,7 +1310,6 @@ void free_command(command_t *c) {
     if (c->args.size == 0)
         print_error(__FILENAME__, __LINE__, __FUNCTION__, "Invalid args");
 
-
     vector_free(&c->args);
     free(c);
 }
@@ -1683,7 +1682,6 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
             }
         }
     }
-
 
     return true;
 }
@@ -2287,6 +2285,9 @@ void command_system_free(command_system_t *cs) {
         print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
 
     command_vector_free(cs->cv);
+    operation_vector_free(cs->operation_vector);
+    set_vector_free(cs->set_vector);
+
     free(cs);
 }
 
