@@ -1243,6 +1243,7 @@ void relation_set_add_relation(relation_set_t *rv, new_relations_t *r) {
         rv->capacity += 1;
         rv->relations = realloc(rv->relations,
                                 sizeof(new_relations_t *) * rv->capacity);
+        rv->relations[rv->size] = malloc(sizeof(new_relations_t));
     }
 
     rv->relations[rv->size] = r;
@@ -1363,7 +1364,7 @@ relation_vector_find(relation_vector_t *rv, unsigned int index) {
         }
     }
 
-    return NULL;
+    return relation_set_init(0);
 }
 
 /**
@@ -2286,6 +2287,7 @@ void add_command_arg(command_t *c, char *arg) {
 set_t *command_to_set(command_t *c) {
     set_t *s = set_init(1);
     s->size = c->args.size;
+    s->capacity = c->args.capacity;
     s->elements = (char **) malloc(sizeof(char *) * c->args.size);
 
     if (c->type != U && c->type != S)
@@ -2342,8 +2344,14 @@ void print_command(command_t *c) {
     }
 
     for (int i = 0; i < c->args.size; i++) {
-        printf(i < c->args.size - 1 ? "%s " : "%s",
-               (char *) c->args.elements[i]);
+        if (c->type == R)printf("(");
+
+        printf("%s", (char *) c->args.elements[i]);
+
+        if (c->type == R)printf(")");
+
+        if (i < c->args.size - 1)
+            printf(" ");
     }
     printf("\n");
 }
@@ -2385,6 +2393,8 @@ commands get_command_type_from_char(char c) {
 
 command_t *parse_relation_command(char *str) {
     char *rel_string = replace_substring(str, ") (", ")/(");
+
+    remove_newlines(rel_string);
 
     vector_t *v = string_to_vector(rel_string, ")/(");
 
@@ -2508,7 +2518,7 @@ command_t *set_to_command(set_t *s) {
 }
 
 relation_set_t *command_to_relation_set(command_t *c) {
-    relation_set_t *rv = malloc(sizeof(relation_set_t));
+    relation_set_t *rv = relation_set_init(0);
 
     for (int i = 0; i < c->args.size; i++) {
         char *rel_str = strdup(c->args.elements[i]);
@@ -3445,6 +3455,56 @@ void command_system_exec(command_system_t *cs) {
                     set_vector_find(cs->set_vector, second_index));
 
             command_vector_replace(cs->cv, bool_to_command(is_equals), i);
+        } else if (strcmp(operation_name, "reflexive") == 0) {
+            bool is_reflexive = relation_is_reflexive(
+                    2,
+                    relation_vector_find(cs->relation_vector, first_index),
+                    cs->set_vector->sets[0]);
+
+            command_vector_replace(cs->cv, bool_to_command(is_reflexive), i);
+        } else if (strcmp(operation_name, "symmetric") == 0) {
+            bool is_symmetric = relation_is_symmetric(
+                    2,
+                    relation_vector_find(cs->relation_vector, first_index),
+                    cs->set_vector->sets[0]);
+
+            command_vector_replace(cs->cv, bool_to_command(is_symmetric), i);
+        } else if (strcmp(operation_name, "antisymmetric") == 0) {
+            bool is_antisymmetric = relation_is_antisymmetric(
+                    2,
+                    relation_vector_find(cs->relation_vector, first_index),
+                    cs->set_vector->sets[0]);
+
+            command_vector_replace(cs->cv, bool_to_command(is_antisymmetric),
+                                   i);
+        } else if (strcmp(operation_name, "transitive") == 0) {
+            bool is_transitive = relation_is_transitive(
+                    2,
+                    relation_vector_find(cs->relation_vector, first_index),
+                    cs->set_vector->sets[0]);
+
+            command_vector_replace(cs->cv, bool_to_command(is_transitive), i);
+        } else if (strcmp(operation_name, "function") == 0) {
+            bool is_function = relation_is_function(
+                    2,
+                    relation_vector_find(cs->relation_vector, first_index),
+                    cs->set_vector->sets[0]);
+
+            command_vector_replace(cs->cv, bool_to_command(is_function), i);
+        } else if (strcmp(operation_name, "domain") == 0) {
+//            bool is_reflexive = relation_is_reflexive(
+//                    2,
+//                    relation_vector_find(cs->relation_vector, first_index),
+//                    cs->set_vector->sets[0]);
+//
+//            command_vector_replace(cs->cv, bool_to_command(is_reflexive), i);
+        } else if (strcmp(operation_name, "codomain") == 0) {
+//            bool is_reflexive = relation_is_reflexive(
+//                    2,
+//                    relation_vector_find(cs->relation_vector, first_index),
+//                    cs->set_vector->sets[0]);
+//
+//            command_vector_replace(cs->cv, bool_to_command(is_reflexive), i);
         }
     }
 }
