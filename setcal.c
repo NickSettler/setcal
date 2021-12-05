@@ -2293,7 +2293,7 @@ void operation_vector_free(operation_vector_t *ov);
 
 typedef struct {
     commands type;
-    vector_t args;
+    vector_t *args;
 } command_t;
 
 command_t *init_command();
@@ -2316,9 +2316,9 @@ commands get_command_type_from_char(char c);
 
 command_t *parse_command(char *s);
 
-command_t bool_to_command(bool b);
+command_t *bool_to_command(bool b);
 
-command_t int_to_command(int i);
+command_t *int_to_command(int i);
 
 command_t *set_to_command(set_t *s);
 
@@ -2348,15 +2348,15 @@ void command_system_free(command_system_t *cs);
 typedef struct {
     int size;
     int capacity;
-    command_t *commands;
+    command_t **commands;
     command_system_t *system;
 } command_vector_t;
 
 command_vector_t *command_vector_init(int capacity);
 
-void command_vector_add(command_vector_t *cv, command_t c);
+void command_vector_add(command_vector_t *cv, command_t *c);
 
-void command_vector_replace(command_vector_t *cv, command_t c, int index);
+void command_vector_replace(command_vector_t *cv, command_t *c, int index);
 
 bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov);
 
@@ -2401,9 +2401,7 @@ command_t *init_command() {
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
 
     c->type = 0;
-    vector_t *v = vector_init(1);
-    vector_copy(&c->args, v);
-    vector_free(v);
+    c->args = vector_init(4);
     return c;
 }
 
@@ -2428,10 +2426,10 @@ void set_command_args(command_t *c, vector_t *args) {
     if (args == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Args is NULL");
 
-    if (&(c->args) == NULL)
+    if (c->args == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Command args is NULL");
 
-    c->args = *args;
+    c->args = args;
 }
 
 /**
@@ -2440,10 +2438,10 @@ void set_command_args(command_t *c, vector_t *args) {
  * @param arg The argument.
  */
 void add_command_arg(command_t *c, char *arg) {
-    if (&(c->args) == NULL)
+    if (c->args == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Command args is NULL");
 
-    vector_add(&c->args, arg);
+    vector_add(c->args, arg);
 }
 
 /**
@@ -2453,9 +2451,9 @@ void add_command_arg(command_t *c, char *arg) {
  */
 set_t *command_to_set(command_t *c) {
     set_t *s = set_init(1);
-    s->size = c->args.size;
-    s->capacity = c->args.capacity;
-    s->elements = (char **) malloc(sizeof(char *) * c->args.size);
+    s->size = c->args->size;
+    s->capacity = c->args->capacity;
+    s->elements = (char **) malloc(sizeof(char *) * c->args->size);
 
     if (c->type != U && c->type != S)
         print_error(__FILENAME__, __LINE__, __func__,
@@ -2464,8 +2462,8 @@ set_t *command_to_set(command_t *c) {
     if (s->elements == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
 
-    for (int i = 0; i < c->args.size; i++) {
-        s->elements[i] = c->args.elements[i];
+    for (int i = 0; i < c->args->size; i++) {
+        s->elements[i] = c->args->elements[i];
     }
 
     return s;
@@ -2479,8 +2477,8 @@ set_t *command_to_set(command_t *c) {
 command_t *command_copy(command_t *c) {
     command_t *c_copy = init_command_with_type(c->type);
 
-    for (int i = 0; i < c->args.size; i++) {
-        add_command_arg(c_copy, c->args.elements[i]);
+    for (int i = 0; i < c->args->size; i++) {
+        add_command_arg(c_copy, c->args->elements[i]);
     }
 
     return c_copy;
@@ -2506,18 +2504,18 @@ void print_command(command_t *c) {
             break;
     }
 
-    if (c->args.size > 0 && c->type != 0) {
+    if (c->args->size > 0 && c->type != 0) {
         printf(" ");
     }
 
-    for (int i = 0; i < c->args.size; i++) {
+    for (int i = 0; i < c->args->size; i++) {
         if (c->type == R)printf("(");
 
-        printf("%s", (char *) c->args.elements[i]);
+        printf("%s", (char *) c->args->elements[i]);
 
         if (c->type == R)printf(")");
 
-        if (i < c->args.size - 1)
+        if (i < c->args->size - 1)
             printf(" ");
     }
     printf("\n");
@@ -2528,13 +2526,10 @@ void print_command(command_t *c) {
  * @param c The command.
  */
 void free_command(command_t *c) {
-    if (&(c->args) == NULL)
-        print_error(__FILENAME__, __LINE__, __func__, "Command args is NULL");
+    if (c == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Command is NULL");
 
-    if (c->args.size == 0)
-        print_error(__FILENAME__, __LINE__, __FUNCTION__, "Invalid args");
-
-    vector_free(&(c->args));
+    vector_free(c->args);
     free(c);
 }
 
@@ -2582,9 +2577,7 @@ command_t *parse_relation_command(char *str) {
     }
 
     vector_foreach(args, remove_newlines);
-    vector_copy(&c->args, args);
-
-    vector_free(args);
+    c->args = args;
 
     return c;
 }
@@ -2639,7 +2632,7 @@ command_t *parse_command(char *s) {
 
     vector_remove(args, 0);
 
-    c->args = *args;
+    c->args = args;
     return c;
 }
 
@@ -2648,13 +2641,13 @@ command_t *parse_command(char *s) {
  * @param b The boolean.
  * @return The command.
  */
-command_t bool_to_command(bool b) {
+command_t *bool_to_command(bool b) {
     command_t *c = init_command();
 
-    c->args = *vector_init(1);
-    vector_add(&c->args, b ? "true" : "false");
+    c->args = vector_init(1);
+    vector_add(c->args, b ? "true" : "false");
 
-    return *c;
+    return c;
 }
 
 /**
@@ -2662,15 +2655,15 @@ command_t bool_to_command(bool b) {
  * @param i The integer.
  * @return The command.
  */
-command_t int_to_command(int i) {
+command_t *int_to_command(int i) {
     command_t *c = init_command();
 
     c->args = *vector_init(1);
     char *str = malloc(sizeof(char *) * n_count(i));
     int_to_string(str, i);
-    vector_add(&c->args, str);
+    vector_add(c->args, str);
 
-    return *c;
+    return c;
 }
 
 /**
@@ -2691,7 +2684,7 @@ command_t *set_to_command(set_t *s) {
         vector_add(args, s->elements[i]);
     }
 
-    c->args = *args;
+    c->args = args;
 
     return c;
 }
@@ -2699,10 +2692,10 @@ command_t *set_to_command(set_t *s) {
 relation_set_t *command_to_relation_set(command_t *c) {
     relation_set_t *rv = relation_set_init(0);
 
-    for (int i = 0; i < c->args.size; i++) {
+    for (int i = 0; i < c->args->size; i++) {
         char *rel_str = malloc(
-                sizeof(char) * (strlen(c->args.elements[i]) + 1));
-        string_duplicate(rel_str, c->args.elements[i]);
+                sizeof(char) * (strlen(c->args->elements[i]) + 1));
+        string_duplicate(rel_str, c->args->elements[i]);
         char *token = strtok(rel_str, " ");
 
         vector_t *v2 = vector_init(2);
@@ -2741,7 +2734,7 @@ command_t *relation_set_to_command(relation_set_t *r) {
         free(vector_str);
     }
 
-    c->args = *args;
+    c->args = args;
 
 //    vector_free(args);
 
@@ -2768,7 +2761,11 @@ command_vector_t *command_vector_init(int capacity) {
 
     cv->size = 0;
     cv->capacity = capacity;
-    cv->commands = (command_t *) malloc(capacity * sizeof(command_t));
+    cv->commands = (command_t **) malloc(capacity * sizeof(command_t *));
+
+    for(int i = 0; i < capacity; i++) {
+        cv->commands[i] = init_command();
+    }
 
     if (cv->commands == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
@@ -2781,15 +2778,16 @@ command_vector_t *command_vector_init(int capacity) {
  * @param cv The command vector.
  * @param c The command.
  */
-void command_vector_add(command_vector_t *cv, command_t c) {
+void command_vector_add(command_vector_t *cv, command_t *c) {
     if (cv->size == cv->capacity) {
         cv->capacity *= 2;
-        cv->commands = (command_t *) realloc(cv->commands,
-                                             cv->capacity * sizeof(command_t));
+        cv->commands = (command_t **) realloc(cv->commands,
+                                             cv->capacity * sizeof(command_t *));
 
         if (cv->commands == NULL)
             print_error(__FILENAME__, __LINE__, __func__, "Realloc failed");
     }
+
     cv->commands[cv->size] = c;
     cv->size++;
 }
@@ -2800,7 +2798,7 @@ void command_vector_add(command_vector_t *cv, command_t c) {
  * @param c The command.
  * @param index The index.
  */
-void command_vector_replace(command_vector_t *cv, command_t c, int index) {
+void command_vector_replace(command_vector_t *cv, command_t *c, int index) {
     if (index < 0 || index >= cv->size)
         print_error(__FILENAME__, __LINE__, __FUNCTION__,
                     "Index out of bounds");
@@ -2846,8 +2844,8 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
     /**
      * Maximum element size in universe is 30.
      */
-    for (int i = 0; i < u_command->args.size; i++) {
-        if (strlen(u_command->args.elements[i]) > 30)
+    for (int i = 0; i < u_command->args->size; i++) {
+        if (strlen(u_command->args->elements[i]) > 30)
             print_error(__FILENAME__, __LINE__, __FUNCTION__,
                         "U command elements are greater than 30");
     }
@@ -2856,8 +2854,8 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
      * Commands vector must contain only the following commands: U, S, R, C.
      */
     for (int i = 0; i < cv->size; i++) {
-        if (cv->commands[i].type != U && cv->commands[i].type != S &&
-            cv->commands[i].type != R && cv->commands[i].type != C) {
+        if (cv->commands[i]->type != U && cv->commands[i]->type != S &&
+            cv->commands[i]->type != R && cv->commands[i]->type != C) {
             print_error(__FILENAME__, __LINE__, __FUNCTION__,
                         "File has unknown command");
         }
@@ -2867,12 +2865,12 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
      * Commands must be in order: U, S/R, C
      */
     for (int i = 0; i < cv->size; i++) {
-        if (cv->commands[i].type == U) {
+        if (cv->commands[i]->type == U) {
             if (i != 0) {
                 print_error(__FILENAME__, __LINE__, __FUNCTION__,
                             "U command must be the first command");
             }
-        } else if (cv->commands[i].type == S || cv->commands[i].type == R) {
+        } else if (cv->commands[i]->type == S || cv->commands[i]->type == R) {
             if (i == 0) {
                 print_error(__FILENAME__, __LINE__, __FUNCTION__,
                             "S command must be after U command");
@@ -2888,8 +2886,11 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
                     print_error(__FILENAME__, __LINE__, __FUNCTION__,
                                 "S and R commands must be after U command and before C commands");
                 }
+
+                command_vector_free(commands_before);
+                command_vector_free(commands_after);
             }
-        } else if (cv->commands[i].type == C) {
+        } else if (cv->commands[i]->type == C) {
             if (i == 0) {
                 print_error(__FILENAME__, __LINE__, __FUNCTION__,
                             "C command must be after U command");
@@ -2902,6 +2903,7 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
                     print_error(__FILENAME__, __LINE__, __FUNCTION__,
                                 "C command must be after U, S and R commands. No other commands cannot be after C");
                 }
+                command_vector_free(commands_after);
             }
         }
     }
@@ -2910,7 +2912,7 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
      * Commands must have at least one C command
      */
     for (int i = 0; i < cv->size; i++) {
-        if (cv->commands[i].type == C) {
+        if (cv->commands[i]->type == C) {
             break;
         }
 
@@ -2960,7 +2962,7 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
      */
     int u_count = 0;
     for (int i = 0; i < cv->size; i++) {
-        if (cv->commands[i].type == U) {
+        if (cv->commands[i]->type == U) {
             u_count++;
         }
     }
@@ -2972,8 +2974,8 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
     /**
      * Universe items length must not be greater than 30.
      */
-    for (int i = 0; i < u_command->args.size; i++) {
-        if (strlen(u_command->args.elements[i]) > 30) {
+    for (int i = 0; i < u_command->args->size; i++) {
+        if (strlen(u_command->args->elements[i]) > 30) {
             print_error(__FILENAME__, __LINE__, __FUNCTION__,
                         "Universe item has length greater than 30");
         }
@@ -2982,7 +2984,7 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
     /**
      * Universe command can contain only strings.
      */
-    char *universe_string = vector_to_string(&(u_command->args), " ");
+    char *universe_string = vector_to_string(u_command->args, " ");
 
     if (is_string_only_characters(universe_string) == false) {
         print_error(__FILENAME__, __LINE__, __FUNCTION__,
@@ -2994,9 +2996,9 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
     /**
      * Check if universe does not contain false and true
      */
-    for (int i = 0; i < u_command->args.size; i++)
-        if (strcmp(u_command->args.elements[i], "false") == 0 ||
-            strcmp(u_command->args.elements[i], "true") == 0) {
+    for (int i = 0; i < u_command->args->size; i++)
+        if (strcmp(u_command->args->elements[i], "false") == 0 ||
+            strcmp(u_command->args->elements[i], "true") == 0) {
             print_error(__FILENAME__, __LINE__, __FUNCTION__,
                         "Universe contains true or false");
         }
@@ -3005,7 +3007,7 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
      * Check if universe does not contain operations.
      */
     for (int i = 0; i < ov->size; i++) {
-        if (vector_contains(&(u_command->args), ov->operations[i]->name) ==
+        if (vector_contains(u_command->args, ov->operations[i]->name) ==
             true) {
             print_error(__FILENAME__, __LINE__, __FUNCTION__,
                         "Universe contains operations");
@@ -3015,10 +3017,10 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
     /**
      * Check if there are no repeats in the universe
      */
-    for (int i = 0; i < u_command->args.size; i++) {
-        for (int j = i + 1; j < u_command->args.size; j++) {
-            if (strcmp(u_command->args.elements[i],
-                       u_command->args.elements[j]) == 0) {
+    for (int i = 0; i < u_command->args->size; i++) {
+        for (int j = i + 1; j < u_command->args->size; j++) {
+            if (strcmp(u_command->args->elements[i],
+                       u_command->args->elements[j]) == 0) {
                 print_error(__FILENAME__, __LINE__, __FUNCTION__,
                             "Universe contains repeating elements");
             }
@@ -3029,9 +3031,9 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
      * Check if all sets has items only form universe.
      */
     for (int i = 0; i < s_commands->size; i++) {
-        for (int j = 0; j < s_commands->commands[i].args.size; j++) {
-            if (vector_contains(&(u_command->args),
-                                s_commands->commands[i].args.elements[j]) ==
+        for (int j = 0; j < s_commands->commands[i]->args->size; j++) {
+            if (vector_contains(u_command->args,
+                                s_commands->commands[i]->args->elements[j]) ==
                 false) {
                 print_error(__FILENAME__, __LINE__, __FUNCTION__,
                             "Set contains elements not from universe");
@@ -3043,11 +3045,11 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
      * Check if there are not repeats in S commands
      */
     for (int i = 0; i < s_commands->size; i++) {
-        command_t *s_command = &s_commands->commands[i];
-        for (int j = 0; j < s_command->args.size; j++) {
-            for (int k = j + 1; k < s_command->args.size; k++) {
-                if (strcmp(s_command->args.elements[j],
-                           s_command->args.elements[k]) == 0) {
+        command_t *s_command = s_commands->commands[i];
+        for (int j = 0; j < s_command->args->size; j++) {
+            for (int k = j + 1; k < s_command->args->size; k++) {
+                if (strcmp(s_command->args->elements[j],
+                           s_command->args->elements[k]) == 0) {
                     print_error(__FILENAME__, __LINE__, __FUNCTION__,
                                 "Set contains repeating elements");
                 }
@@ -3059,10 +3061,10 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
      * Check if all operations in command vector exist
      */
     for (int i = 0; i < c_commands->size; i++) {
-        command_t c_command = c_commands->commands[i];
+        command_t *c_command = c_commands->commands[i];
         for (int j = 0; j < ov->size; j++) {
             if (strcmp(
-                    c_command.args.elements[0],
+                    c_command->args->elements[0],
                     ov->operations[j]->name) == 0)
                 break;
 
@@ -3077,13 +3079,13 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
      * Check if all elements in R commands are from universe
      */
     for (int i = 0; i < r_commands->size; i++) {
-        command_t r_command = r_commands->commands[i];
-        relation_set_t *rs = command_to_relation_set(&r_command);
+        command_t *r_command = (r_commands->commands)[i];
+        relation_set_t *rs = command_to_relation_set(r_command);
 
         for (int j = 0; j < rs->size; j++) {
-            if ((vector_contains(&(u_command->args),
+            if ((vector_contains(u_command->args,
                                  rs->relations[j]->element_a) &&
-                 vector_contains(&(u_command->args),
+                 vector_contains(u_command->args,
                                  rs->relations[j]->element_b)) == false) {
                 print_error(__FILENAME__, __LINE__, __FUNCTION__,
                             "Relation set contains elements not from universe");
@@ -3097,8 +3099,8 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
      * Check if there are not repeats in R commands
      */
     for (int i = 0; i < r_commands->size; i++) {
-        command_t r_command = r_commands->commands[i];
-        relation_set_t *rs = command_to_relation_set(&r_command);
+        command_t *r_command = r_commands->commands[i];
+        relation_set_t *rs = command_to_relation_set(r_command);
 
         for (int j = 0; j < rs->size; j++) {
             for (int k = j + 1; k < rs->size; k++) {
@@ -3137,7 +3139,7 @@ vector_t *get_unique_command_types(command_vector_t *cv) {
 
     for (int i = 0; i < cv->size; i++) {
         char *command_type = " ";
-        switch (cv->commands[i].type) {
+        switch (cv->commands[i]->type) {
             case U:
                 command_type = "U";
                 break;
@@ -3174,7 +3176,7 @@ command_t *get_command_by_index(command_vector_t *cv, int index) {
                     "Index out of bounds");
     }
 
-    return &cv->commands[index];
+    return cv->commands[index];
 }
 
 /**
@@ -3185,8 +3187,8 @@ command_t *get_command_by_index(command_vector_t *cv, int index) {
  */
 command_t *find_command_by_type(command_vector_t *cv, commands type) {
     for (int i = 0; i < cv->size; i++) {
-        if (cv->commands[i].type == type) {
-            return &cv->commands[i];
+        if (cv->commands[i]->type == type) {
+            return cv->commands[i];
         }
     }
     return NULL;
@@ -3198,8 +3200,8 @@ find_command_by_type_all(command_vector_t *cv, commands type) {
     command_vector_t *commands = command_vector_init(1);
 
     for (int i = 0; i < cv->size; i++) {
-        if (cv->commands[i].type == type) {
-            command_vector_add(commands, cv->commands[i]);
+        if (cv->commands[i]->type == type) {
+            command_vector_add(commands, (cv->commands)[i]);
         }
     }
 
@@ -3231,7 +3233,7 @@ command_vector_slice(command_vector_t *cv, int start, int end) {
  */
 bool command_vector_contains_type(command_vector_t *cv, commands type) {
     for (int i = 0; i < cv->size; i++) {
-        if (cv->commands[i].type == type) {
+        if (cv->commands[i]->type == type) {
             return true;
         }
     }
@@ -3244,7 +3246,7 @@ bool command_vector_contains_type(command_vector_t *cv, commands type) {
  */
 void command_vector_print(command_vector_t *cv) {
     for (int i = 0; i < cv->size; i++) {
-        print_command(&cv->commands[i]);
+        print_command(cv->commands[i]);
     }
 }
 
@@ -3277,7 +3279,7 @@ command_vector_t *parse_file(char *filename) {
 
     while (fgets(line, 255, fp) != NULL) {
         command_t *c = parse_command(line);
-        command_vector_add(cv, *c);
+        command_vector_add(cv, c);
     }
 
     fclose(fp);
@@ -3441,10 +3443,10 @@ bool operation_vector_has_name_type(operation_vector_t *ov, char *name,
 }
 
 bool operation_vector_has_command(operation_vector_t *ov, command_t *c) {
-    if (c->args.elements[0] == NULL)
+    if (c->args->elements[0] == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Invalid command");
 
-    return operation_vector_has_name_type(ov, c->args.elements[0], c->type);
+    return operation_vector_has_name_type(ov, c->args->elements[0], c->type);
 }
 
 bool operation_vector_contains(operation_vector_t *ov, char *name) {
@@ -3627,17 +3629,17 @@ void command_system_init_vectors(command_system_t *cs) {
     set_vector_add(cs->set_vector, command_to_set(universe_command), 1);
 
     for (int i = 0; i < cs->cv->size; i++) {
-        if (cs->cv->commands[i].type == S) {
+        if (cs->cv->commands[i]->type == S) {
             set_t *set = set_init_indexed(i + 1,
-                                          cs->cv->commands[i].args.size);
+                                          cs->cv->commands[i]->args->size);
 
-            for (int j = 0; j < cs->cv->commands[i].args.size; j++) {
-                set_add(set, cs->cv->commands[i].args.elements[j]);
+            for (int j = 0; j < cs->cv->commands[i]->args->size; j++) {
+                set_add(set, cs->cv->commands[i]->args->elements[j]);
             }
 
             set_vector_add(cs->set_vector, set, i);
-        } else if (cs->cv->commands[i].type == R) {
-            command_t *command = &cs->cv->commands[i];
+        } else if (cs->cv->commands[i]->type == R) {
+            command_t *command = cs->cv->commands[i];
             relation_set_t *relation_set = command_to_relation_set(command);
             relation_set->index = i + 1;
 
@@ -3652,10 +3654,10 @@ void command_system_init_vectors(command_system_t *cs) {
  */
 void command_system_exec(command_system_t *cs) {
     for (int i = 0; i < cs->cv->size; i++) {
-        command_t *command = &cs->cv->commands[i];
+        command_t *command = cs->cv->commands[i];
         if (command->type != C) continue;
 
-        char *operation_name = command->args.elements[0];
+        char *operation_name = command->args->elements[0];
 
         /**
          * Operation check. Operation type must relate to argument type.
@@ -3663,22 +3665,22 @@ void command_system_exec(command_system_t *cs) {
         operation *operation = operation_vector_find(cs->operation_vector,
                                                      operation_name);
 
-        if (operation->argc != command->args.size - 1)
+        if (operation->argc != command->args->size - 1)
             print_error(__FILENAME__, __LINE__, __func__,
                         "Invalid number of arguments");
 
-        bool has_third_command = command->args.elements[3] != NULL;
+        bool has_third_command = command->args->elements[3] != NULL;
 
         command_t *first_cmd = init_command();
         command_t *second_cmd = init_command();
         command_t *third_cmd = init_command();
 
-        int first_index = atoi(command->args.elements[1]);
-        int second_index = atoi(command->args.elements[2]);
+        int first_index = atoi(command->args->elements[1]);
+        int second_index = atoi(command->args->elements[2]);
         int third_index = 0;
 
         if (has_third_command) {
-            third_index = atoi(command->args.elements[3]);
+            third_index = atoi(command->args->elements[3]);
         }
 
         if (first_index) {
@@ -3692,7 +3694,7 @@ void command_system_exec(command_system_t *cs) {
                 print_error(__FILENAME__, __LINE__, __func__,
                             "Invalid argument type");
 
-            first_cmd->args.elements[0] = command->args.elements[0];
+            first_cmd->args->elements[0] = command->args->elements[0];
         }
 
         if (second_index) {
@@ -3706,7 +3708,7 @@ void command_system_exec(command_system_t *cs) {
                 print_error(__FILENAME__, __LINE__, __func__,
                             "Invalid argument type");
 
-            second_cmd->args.elements[0] = command->args.elements[0];
+            second_cmd->args->elements[0] = command->args->elements[0];
         }
 
         if (third_index) {
@@ -3720,7 +3722,7 @@ void command_system_exec(command_system_t *cs) {
                 print_error(__FILENAME__, __LINE__, __func__,
                             "Invalid argument type");
 
-            third_cmd->args.elements[0] = command->args.elements[0];
+            third_cmd->args->elements[0] = command->args->elements[0];
         }
 
         if ((operation_vector_has_command(
@@ -3749,26 +3751,26 @@ void command_system_exec(command_system_t *cs) {
                     set_vector_find(cs->set_vector, 1),
                     set_vector_find(cs->set_vector, first_index));
 
-            command_vector_replace(cs->cv, *set_to_command(s), i);
+            command_vector_replace(cs->cv, set_to_command(s), i);
         } else if (strcmp(operation_name, "union") == 0) {
             set_t *s = set_union(
                     2,
                     set_vector_find(cs->set_vector, first_index),
                     set_vector_find(cs->set_vector, second_index));
-            command_vector_replace(cs->cv, *set_to_command(s), i);
+            command_vector_replace(cs->cv, set_to_command(s), i);
         } else if (strcmp(operation_name, "intersect") == 0) {
             set_t *s = set_intersection(
                     2,
                     set_vector_find(cs->set_vector, first_index),
                     set_vector_find(cs->set_vector, second_index));
-            command_vector_replace(cs->cv, *set_to_command(s), i);
+            command_vector_replace(cs->cv, set_to_command(s), i);
         } else if (strcmp(operation_name, "minus") == 0) {
             set_t *s = set_diff(
                     2,
                     set_vector_find(cs->set_vector, first_index),
                     set_vector_find(cs->set_vector, second_index));
 
-            command_vector_replace(cs->cv, *set_to_command(s), i);
+            command_vector_replace(cs->cv, set_to_command(s), i);
         } else if (strcmp(operation_name, "subseteq") == 0) {
             bool is_subseteq = set_is_subseteq(
                     2,
@@ -3835,14 +3837,14 @@ void command_system_exec(command_system_t *cs) {
                     2,
                     relation_vector_find(cs->relation_vector, first_index),
                     cs->set_vector->sets[0]);
-            command_vector_replace(cs->cv, *set_to_command(s), i);
+            command_vector_replace(cs->cv, set_to_command(s), i);
         } else if (strcmp(operation_name, "codomain") == 0) {
             set_t *s = relation_codomain(
                     2,
                     relation_vector_find(cs->relation_vector, first_index),
                     cs->set_vector->sets[0]);
 
-            command_vector_replace(cs->cv, *set_to_command(s), i);
+            command_vector_replace(cs->cv, set_to_command(s), i);
         } else if ((strcmp(operation_name, "injective") == 0) ||
                    (strcmp(operation_name, "surjective") == 0) ||
                    (strcmp(operation_name, "bijective") == 0)) {
@@ -3875,6 +3877,10 @@ void command_system_exec(command_system_t *cs) {
                         set_vector_find(cs->set_vector, second_index),
                         set_vector_find(cs->set_vector, third_index));
             }
+//            command_t res_cmd = bool_to_command(result);
+//
+//            free_command(&res_cmd);
+//
             command_vector_replace(cs->cv, bool_to_command(result), i);
         } else if (strcmp(operation_name, "closure_ref") == 0) {
             relation_set_t *rs = closure_ref(2,
@@ -3883,7 +3889,7 @@ void command_system_exec(command_system_t *cs) {
                                                      first_index),
                                              cs->set_vector->sets[0]);
 
-            command_vector_replace(cs->cv, *relation_set_to_command(rs), i);
+            command_vector_replace(cs->cv, relation_set_to_command(rs), i);
         } else if (strcmp(operation_name, "closure_sym") == 0) {
             relation_set_t *rs = closure_sym(2,
                                              relation_vector_find(
@@ -3891,7 +3897,7 @@ void command_system_exec(command_system_t *cs) {
                                                      first_index),
                                              cs->set_vector->sets[0]);
 
-            command_vector_replace(cs->cv, *relation_set_to_command(rs), i);
+            command_vector_replace(cs->cv, relation_set_to_command(rs), i);
         } else if (strcmp(operation_name, "closure_trans") == 0) {
             relation_set_t *rs = closure_trans(2,
                                                relation_vector_find(
@@ -3899,7 +3905,7 @@ void command_system_exec(command_system_t *cs) {
                                                        first_index),
                                                cs->set_vector->sets[0]);
 
-            command_vector_replace(cs->cv, *relation_set_to_command(rs), i);
+            command_vector_replace(cs->cv, relation_set_to_command(rs), i);
         }
     }
 }
