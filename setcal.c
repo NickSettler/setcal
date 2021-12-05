@@ -162,8 +162,22 @@ int find_substr(const char *str, const char *substr) {
 char *replace_substring(char *str, char *substr, char *new_substr) {
     int i, j, k, l;
     int substr_len = (int) strlen(substr);
+
+    if (substr_len == 0) {
+        return str;
+    }
+
     int new_substr_len = (int) strlen(new_substr);
+
+    if (new_substr_len == 0) {
+        return str;
+    }
+
     int str_len = (int) strlen(str);
+
+    if (str_len == 0) {
+        return str;
+    }
 
     int substr_pos = find_substr(str, substr);
 
@@ -171,6 +185,9 @@ char *replace_substring(char *str, char *substr, char *new_substr) {
         return str;
 
     char *new_str = malloc(str_len + 1);
+
+    if (new_str == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
 
     for (i = 0; i < substr_pos; i++)
         new_str[i] = str[i];
