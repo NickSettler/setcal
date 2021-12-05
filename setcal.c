@@ -1300,6 +1300,20 @@ typedef struct {
     relation_set_t **relations;
 } relation_vector_t;
 
+relation_vector_t *relation_vector_init(int capacity);
+
+relation_vector_t *relation_vector_init_indexed(int capacity, int index);
+
+void relation_vector_add(set_vector_t *sv, set_t *s, unsigned int index);
+
+void
+relation_vector_add_relation_set(relation_vector_t *rv, relation_set_t *rs);
+
+void relation_vector_print(relation_vector_t *rv);
+
+void relation_vector_free(relation_vector_t *rv);
+
+
 /**
  * Initializes a relation_vector_t.
  * @param capacity The capacity of the relation_vector_t.
@@ -1314,6 +1328,21 @@ relation_vector_t *relation_vector_init(int capacity) {
     rv->relations = malloc(sizeof(relation_set_t *) * capacity);
 
     return rv;
+}
+
+relation_vector_t *relation_vector_init_indexed(int capacity, int index) {
+    relation_vector_t *rv = malloc(sizeof(relation_vector_t));
+
+    rv->index = index;
+    rv->size = 0;
+    rv->capacity = capacity;
+    rv->relations = malloc(sizeof(relation_set_t *) * capacity);
+
+    return rv;
+}
+
+void relation_vector_add(set_vector_t *sv, set_t *s, unsigned int index) {
+
 }
 
 /**
