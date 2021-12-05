@@ -275,13 +275,13 @@ void remove_newlines(char *str) {
 }
 
 
-char *string_duplicate(char *str){
+char *string_duplicate(char *str) {
     char *new_str = malloc(sizeof(char) * (strlen(str) + 1));
-    if (new_str == NULL){
+    if (new_str == NULL) {
         print_error(__FILENAME__, __LINE__, __func__, "malloc failed");
     }
     strcpy(new_str, str);
-    if (strcmp(str, new_str) != 0){
+    if (strcmp(str, new_str) != 0) {
         print_error(__FILENAME__, __LINE__, __func__, "strcpy failed");
     }
     return new_str;
@@ -338,7 +338,7 @@ vector_t *vector_init(int capacity) {
     v->capacity = capacity;
     v->elements = (char **) malloc(capacity * sizeof(char *));
 
-    for(int i = 0; i < capacity; i++) {
+    for (int i = 0; i < capacity; i++) {
         v->elements[i] = malloc(sizeof(char) * 31);
     }
 
