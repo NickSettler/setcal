@@ -45,7 +45,7 @@ void print_error(const char *filename, int line, const char *function,
  * -----------------------------------------------------------------------------
  */
 
-char *int_to_string(int number);
+void int_to_string(char *str, int number);
 
 char *pad_string(char *str, unsigned int max);
 
@@ -62,21 +62,22 @@ void remove_spaces(char *str);
 void remove_newlines(char *str);
 
 
+int n_count(int n) {
+    int count = 0;
+    while (n != 0) {
+        count++;
+        n /= 10;
+    }
+    return count;
+}
+
 /**
  * Convert int to string.
  * @param number The number to convert.
  * @return The string representation of the number.
  */
-char *int_to_string(int number) {
-    char *str;
-    str = (char *) malloc(sizeof(char) * 10);
-
-    if (str == NULL)
-        print_error(__FILENAME__, __LINE__, __func__, "malloc failed");
-
-
-    sprintf(str, "%d", number);
-    return str;
+void int_to_string(char *str, int number) {
+    sprintf(str, "%d\0", number);
 }
 
 /**
@@ -279,10 +280,6 @@ typedef struct {
 
 vector_t *vector_init(int capacity);
 
-unsigned int find_max_vector_element_size(vector_t *v);
-
-void resize_all(vector_t *v, unsigned int max);
-
 void vector_add(vector_t *v, char *s);
 
 void vector_add_no_transform(vector_t *v, char *s);
@@ -323,32 +320,6 @@ vector_t *vector_init(int capacity) {
     }
 
     return v;
-}
-
-/**
- * Finds the longest element in the vector.
- * @param v The vector.
- * @return Length of the longest element.
- */
-unsigned int find_max_vector_element_size(vector_t *v) {
-    unsigned int max = 0;
-    for (int i = 0; i < v->size; i++) {
-        if (strlen(v->elements[i]) > max) {
-            max = strlen(v->elements[i]);
-        }
-    }
-    return max;
-}
-
-/**
- * Resizes all elements to the max length.
- * @param v The vector.
- * @param max The max length of the elements.
- */
-void resize_all(vector_t *v, unsigned int max) {
-    for (int i = 0; i < v->size; i++) {
-        v->elements[i] = pad_string(v->elements[i], max);
-    }
 }
 
 /**
@@ -2652,7 +2623,9 @@ command_t int_to_command(int i) {
     command_t *c = init_command();
 
     c->args = *vector_init(1);
-    vector_add(&c->args, int_to_string(i));
+    char *str = malloc(sizeof(char *) * n_count(i));
+    int_to_string(str, i);
+    vector_add(&c->args, str);
 
     return *c;
 }
