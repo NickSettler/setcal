@@ -1502,6 +1502,547 @@ void relation_table_print_with_names(relation_table_t *rt) {
 }
 
 /**
+ * Relation math
+ */
+
+void rel_table(int **table, relation_t *rel_arr, set_t *univerzum);
+
+bool _relation_is_reflexive(relation_set_t *rv, set_t *universe);
+
+bool relation_is_reflexive(int n, ...);
+
+bool _relation_is_symmetric(relation_set_t *rv, set_t *universe);
+
+bool relation_is_symmetric(int n, ...);
+
+bool _relation_is_antisymmetric(relation_set_t *rv, set_t *universe);
+
+bool relation_is_antisymmetric(int n, ...);
+
+bool _relation_is_transitive(relation_set_t *rv, set_t *universe);
+
+bool relation_is_transitive(int n, ...);
+
+bool _relation_is_function(relation_set_t *rv, set_t *universe);
+
+bool relation_is_function(int n, ...);
+
+vector_t *_relation_domain(relation_set_t *rv, set_t *universe);
+
+vector_t *relation_domain(int n, ...);
+
+vector_t *_relation_codomain(relation_set_t *rv, set_t *universe);
+
+vector_t *relation_codomain(int n, ...);
+
+bool _relation_is_injective(relation_set_t *rv, set_t *s1, set_t *s2);
+
+bool relation_is_injective(int n, ...);
+
+bool _relation_is_surjective(relation_set_t *rv, set_t *s1, set_t *s2);
+
+bool relation_is_surjective(int n, ...);
+
+bool _relation_is_bijective(relation_set_t *rv, set_t *s1, set_t *s2);
+
+bool relation_is_bijective(int n, ...);
+
+
+/**
+ * table of 0 and 1 for relation_t
+ */
+void rel_table(int **table, relation_t *rel_arr, set_t *universe) {
+    for (int i = 0; i < universe->size; i++) {
+        for (int j = 0; j < universe->size; j++) {
+            table[i][j] = 0;
+        }
+    }
+    for (int i = 0; i < rel_arr->count_pairs; i++) {
+        for (int j = 0; j < universe->size; j++) {
+            if (strcmp(rel_arr->pairs[i][0], universe->elements[j]) == 0) {
+                for (int k = 0; k < universe->size; k++) {
+                    if (strcmp(rel_arr->pairs[i][1], universe->elements[k]) ==
+                        0) {
+                        table[j][k] = 1;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+    }
+}
+
+/**
+ * Checks if the relation is reflexive.
+ * @param rel_arr The array of relation pairs.
+ * @param universe The universe.
+ * @return true if the relation is reflexive, false otherwise.
+ */
+bool _relation_is_reflexive(relation_set_t *rv, set_t *universe) {
+    relation_table_t *rt = relation_table_init_relation(
+            universe, universe, rv);
+
+    for (int i = 0; i < universe->size; i++) {
+        if (rt->matrix[i][i] != 1) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Checks if the relation is reflexive.
+ * @param n The number of relation_t.
+ * @param ... The rows of relation_t and universe.
+ * @return True if the relation is reflexive, false otherwise.
+ */
+bool relation_is_reflexive(int n, ...) {
+    va_list args;
+    va_start(args, n);
+
+    relation_set_t *rv = va_arg(args, relation_set_t *);
+    set_t *univerzum = va_arg(args, set_t *);
+
+    bool result = _relation_is_reflexive(rv, univerzum);
+
+    va_end(args);
+
+    return result;
+}
+
+/**
+ * Checks if the relation is symmetric.
+ * @param rel_arr The array of relation pairs.
+ * @param universe The universe.
+ * @return true if the relation is symmetric, false otherwise.
+ */
+bool _relation_is_symmetric(relation_set_t *rv, set_t *universe) {
+    relation_table_t *rt = relation_table_init_relation(
+            universe, universe, rv);
+
+    for (int i = 0; i < universe->size; i++) {
+        for (int j = 0; j < universe->size; j++) {
+            if (rt->matrix[i][j] == 1 && rt->matrix[j][i] == 0) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Checks if the relation is symmetric.
+ * @param n The number of relation_t.
+ * @param ... The rows of relation_t and universe.
+ * @return True if the relation is symmetric, false otherwise.
+ */
+bool relation_is_symmetric(int n, ...) {
+    va_list args;
+    va_start(args, n);
+
+    relation_set_t *rv = va_arg(args, relation_set_t *);
+    set_t *universe = va_arg(args, set_t *);
+
+    bool result = _relation_is_symmetric(rv, universe);
+
+    va_end(args);
+
+    return result;
+}
+
+/**
+ * Checks if the relation is antisymmetric.
+ * @param rel_arr The array of relation pairs.
+ * @param universe The universe.
+ * @return true if the relation is antisymmetric, false otherwise.
+ */
+bool _relation_is_antisymmetric(relation_set_t *rv, set_t *universe) {
+    relation_table_t *rt = relation_table_init_relation(
+            universe, universe, rv);
+
+    for (int i = 0; i < universe->size; i++) {
+        for (int j = 0; j < universe->size; j++) {
+            if (rt->matrix[i][j] == 1 && rt->matrix[j][i] == 1 && i != j) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Checks if the relation is antisymmetric.
+ * @param n The number of relation_t.
+ * @param ... The rows of relation_t and universe.
+ * @return True if the relation is antisymmetric, false otherwise.
+ */
+bool relation_is_antisymmetric(int n, ...) {
+    va_list args;
+    va_start(args, n);
+
+    relation_set_t *rv = va_arg(args, relation_set_t *);
+    set_t *universe = va_arg(args, set_t *);
+
+    bool result = _relation_is_antisymmetric(rv, universe);
+
+    va_end(args);
+
+    return result;
+}
+
+/**
+ * Checks if the relation is transitive.
+ * @param rel_arr The array of relation pairs.
+ * @param universe The universe.
+ * @return true if the relation is transitive, false otherwise.
+ */
+bool _relation_is_transitive(relation_set_t *rv, set_t *universe) {
+    relation_table_t *rt = relation_table_init_relation(
+            universe, universe, rv);
+
+    for (int i = 0; i < universe->size; i++) {
+        for (int j = 0; j < universe->size; j++) {
+            for (int k = 0; k < universe->size; k++) {
+                if (rt->matrix[i][j] == 1 && rt->matrix[j][k] == 1 &&
+                    rt->matrix[i][k] == 0) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Checks if the relation is transitive.
+ * @param n The number of relation_t.
+ * @param ... The rows of relation_t and universe.
+ * @return True if the relation is transitive, false otherwise.
+ */
+bool relation_is_transitive(int n, ...) {
+    va_list args;
+    va_start(args, n);
+
+    relation_set_t *rv = va_arg(args, relation_set_t *);
+    set_t *universe = va_arg(args, set_t *);
+
+    bool result = _relation_is_transitive(rv, universe);
+
+    va_end(args);
+
+    return result;
+}
+
+/**
+ * Checks if the relation is function.
+ * @param rel_arr The array of relation pairs.
+ * @param universe The universe.
+ * @return true if the relation is function, false otherwise.
+ */
+bool _relation_is_function(relation_set_t *rv, set_t *universe) {
+    relation_table_t *rt = relation_table_init_relation(
+            universe, universe, rv);
+
+    for (int i = 0; i < universe->size; i++) {
+        int total_in_row = 0;
+        for (int j = 0; j < universe->size; j++) {
+            if (rt->matrix[i][j] == 1) {
+                total_in_row++;
+            }
+            if (total_in_row == 2) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+/**
+ * Checks if the relation is a function.
+ * @param n The number of relation_t.
+ * @param ... The rows of relation_t and universe.
+ * @return True if the relation is a function, false otherwise.
+ */
+bool relation_is_function(int n, ...) {
+    va_list args;
+    va_start(args, n);
+
+    relation_set_t *rv = va_arg(args, relation_set_t *);
+    set_t *universe = va_arg(args, set_t *);
+
+    bool result = _relation_is_function(rv, universe);
+
+    va_end(args);
+
+    return result;
+}
+
+/**
+ * Finds domain of the relation
+ * @param rel_arr The array of relation pairs.
+ * @param universe The universe.
+ */
+vector_t *_relation_domain(relation_set_t *rv, set_t *universe) {
+    vector_t *domain = vector_init(universe->size);
+    for (int i = 0; i < rv->size; i++) {
+        int flag = 0;
+        for (int j = 0; j < universe->size; j++) {
+            if (strcmp(rv->relations[i]->element_a, universe->elements[j]) ==
+                0) {
+                for (int k = 0; k < domain->size; k++) {
+                    if (strcmp(rv->relations[i]->element_a,
+                               domain->elements[k]) ==
+                        0) {
+                        flag = 1;
+                        break;
+                    }
+                }
+                if (flag == 0) {
+                    vector_add(domain, rv->relations[i]->element_a);
+                }
+                break;
+            }
+        }
+    }
+    for (int i = 0; i < domain->size; i++) {
+        if (strcmp(domain->elements[i], "") != 0) {
+            printf("%s ", domain->elements[i]);
+        }
+
+    }
+    return domain;
+}
+
+/**
+ * Finds domain of the relation_t.
+ * @param n The number of relation_t.
+ * @param ... The rows of relation_t and universe.
+ */
+vector_t *relation_domain(int n, ...) {
+    va_list args;
+    va_start(args, n);
+
+    relation_set_t *rv = va_arg(args, relation_set_t *);
+    set_t *universe = va_arg(args, set_t *);
+
+    vector_t *result = _relation_domain(rv, universe);
+    va_end(args);
+
+    return result;
+}
+
+/**
+ * Finds codomain of the relation
+ * @param rel_arr The array of relation pairs.
+ * @param universe The universe.
+ */
+vector_t *_relation_codomain(relation_set_t *rv, set_t *universe) {
+    vector_t *codomain = vector_init(universe->size);
+    for (int i = 0; i < rv->size; i++) {
+        int flag = 0;
+        for (int j = 0; j < universe->size; j++) {
+            if (strcmp(rv->relations[i]->element_b, universe->elements[j]) ==
+                0) {
+                for (int k = 0; k < codomain->size; k++) {
+                    if (strcmp(rv->relations[i]->element_b,
+                               codomain->elements[k]) ==
+                        0) {
+                        flag = 1;
+                        break;
+                    }
+                }
+                if (flag == 0) {
+                    vector_add(codomain, rv->relations[i]->element_b);
+                }
+                break;
+            }
+        }
+    }
+    for (int i = 0; i < codomain->size; i++) {
+        if (strcmp(codomain->elements[i], "") != 0) {
+            printf("%s ", codomain->elements[i]);
+        }
+
+    }
+    return codomain;
+}
+
+/**
+ * Finds codomain of the relation_t.
+ * @param n The number of relation_t.
+ * @param ... The rows of relation_t and universe.
+ */
+vector_t *relation_codomain(int n, ...) {
+    va_list args;
+    va_start(args, n);
+
+    relation_set_t *rv = va_arg(args, relation_set_t *);
+    set_t *universe = va_arg(args, set_t *);
+
+    vector_t *result = _relation_codomain(rv, universe);
+    va_end(args);
+
+    return result;
+}
+
+/**
+ * Checks if the relation is injective.
+ * @param rel_arr The relation
+ * @param s1 The first set (domain)
+ * @param s2 The second set (codomain)
+ * @return True if the relation is injective, false otherwise.
+ */
+bool _relation_is_injective(relation_set_t *rv, set_t *s1, set_t *s2) {
+    relation_table_t *rt = relation_table_init_relation(
+            s1, s2, rv);
+
+    for (int i = 0; i < s1->size; i++) {
+        int total_in_row = 0;
+        for (int j = 0; j < s2->size; j++) {
+            if (rt->matrix[i][j] == 1) {
+                total_in_row++;
+            }
+        }
+        if (total_in_row != 1) {     //it has to be a function as well
+            printf("its not a function!\n");
+            return false;
+        }
+    }
+    for (int i = 0; i < s2->size; i++) {
+        int total_in_column = 0;
+        for (int j = 0; j < s1->size; j++) {
+            if (rt->matrix[j][i] == 1) {
+                total_in_column++;
+            }
+            if (total_in_column > 1) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/**
+ * Checks if the relation is injective.
+ * @param n The number of relation_t.
+ * @param ... The rows of relation_t and sets.
+ * @return True if the relation is injective, false otherwise.
+ */
+bool relation_is_injective(int n, ...) {
+    va_list args;
+    va_start(args, n);
+
+    relation_set_t *rv = va_arg(args, relation_set_t *);
+    set_t *s1 = va_arg(args, set_t *);
+    set_t *s2 = va_arg(args, set_t *);
+
+    bool result = _relation_is_injective(rv, s1, s2);
+
+    va_end(args);
+
+    return result;
+}
+
+/**
+ * Checks if the relation is surjective.
+ * @param rel_arr The relation
+ * @param s1 The first set (domain)
+ * @param s2 The second set (codomain)
+ * @return True if the relation is surjective, false otherwise.
+ */
+bool _relation_is_surjective(relation_set_t *rv, set_t *s1, set_t *s2) {
+    relation_table_t *rt = relation_table_init_relation(
+            s1, s2, rv);
+
+    for (int i = 0; i < s1->size; i++) {
+        int total_in_row = 0;
+        for (int j = 0; j < s2->size; j++) {
+            if (rt->matrix[i][j] == 1) {
+                total_in_row++;
+            }
+        }
+        if (total_in_row != 1) {     //it has to be a function as well
+            return false;
+        }
+    }
+    for (int i = 0; i < s2->size; i++) {
+        int total_in_column = 0;
+        for (int j = 0; j < s1->size; j++) {
+            if (rt->matrix[j][i] == 1) {
+                total_in_column++;
+            }
+        }
+        if (total_in_column == 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * Checks if the relation is surjective.
+ * @param n The number of relation_t.
+ * @param ... The rows of relation_t and sets.
+ * @return True if the relation is surjective, false otherwise.
+ */
+bool relation_is_surjective(int n, ...) {
+    va_list args;
+    va_start(args, n);
+
+    relation_set_t *rv = va_arg(args, relation_set_t *);
+    set_t *s1 = va_arg(args, set_t *);
+    set_t *s2 = va_arg(args, set_t *);
+
+    bool result = _relation_is_surjective(rv, s1, s2);
+
+    va_end(args);
+
+    return result;
+}
+
+/**
+ * Checks if the relation is bijective.
+ * @param rel_arr The relation
+ * @param s1 The first set (domain)
+ * @param s2 The second set (codomain)
+ * @return True if the relation is bijective, false otherwise.
+ */
+bool _relation_is_bijective(relation_set_t *rv, set_t *s1, set_t *s2) {
+    if (_relation_is_injective(rv, s1, s2) == true &&
+        _relation_is_surjective(rv, s1, s2) == true) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * Checks if the relation is bijective.
+ * @param n The number of relation_t.
+ * @param ... The rows of relation_t and sets.
+ * @return True if the relation is bijective, false otherwise.
+ */
+bool relation_is_bijective(int n, ...) {
+    va_list args;
+    va_start(args, n);
+
+    relation_set_t *rv = va_arg(args, relation_set_t *);
+    set_t *s1 = va_arg(args, set_t *);
+    set_t *s2 = va_arg(args, set_t *);
+
+    bool result = _relation_is_bijective(rv, s1, s2);
+
+    va_end(args);
+
+    return result;
+}
+
+/**
  * -----------------------------------------------------------------------------
  * COMMAND MODULE [COMMAND]
  * -----------------------------------------------------------------------------
@@ -2889,547 +3430,6 @@ void command_system_free(command_system_t *cs) {
     set_vector_free(cs->set_vector);
 
     free(cs);
-}
-
-/**
- * Relation math
- */
-
-void rel_table(int **table, relation_t *rel_arr, set_t *univerzum);
-
-bool _relation_is_reflexive(relation_set_t *rv, set_t *universe);
-
-bool relation_is_reflexive(int n, ...);
-
-bool _relation_is_symmetric(relation_set_t *rv, set_t *universe);
-
-bool relation_is_symmetric(int n, ...);
-
-bool _relation_is_antisymmetric(relation_set_t *rv, set_t *universe);
-
-bool relation_is_antisymmetric(int n, ...);
-
-bool _relation_is_transitive(relation_set_t *rv, set_t *universe);
-
-bool relation_is_transitive(int n, ...);
-
-bool _relation_is_function(relation_set_t *rv, set_t *universe);
-
-bool relation_is_function(int n, ...);
-
-vector_t *_relation_domain(relation_set_t *rv, set_t *universe);
-
-vector_t *relation_domain(int n, ...);
-
-vector_t *_relation_codomain(relation_set_t *rv, set_t *universe);
-
-vector_t *relation_codomain(int n, ...);
-
-bool _relation_is_injective(relation_set_t *rv, set_t *s1, set_t *s2);
-
-bool relation_is_injective(int n, ...);
-
-bool _relation_is_surjective(relation_set_t *rv, set_t *s1, set_t *s2);
-
-bool relation_is_surjective(int n, ...);
-
-bool _relation_is_bijective(relation_set_t *rv, set_t *s1, set_t *s2);
-
-bool relation_is_bijective(int n, ...);
-
-
-/**
- * table of 0 and 1 for relation_t
- */
-void rel_table(int **table, relation_t *rel_arr, set_t *universe) {
-    for (int i = 0; i < universe->size; i++) {
-        for (int j = 0; j < universe->size; j++) {
-            table[i][j] = 0;
-        }
-    }
-    for (int i = 0; i < rel_arr->count_pairs; i++) {
-        for (int j = 0; j < universe->size; j++) {
-            if (strcmp(rel_arr->pairs[i][0], universe->elements[j]) == 0) {
-                for (int k = 0; k < universe->size; k++) {
-                    if (strcmp(rel_arr->pairs[i][1], universe->elements[k]) ==
-                        0) {
-                        table[j][k] = 1;
-                        break;
-                    }
-                }
-                break;
-            }
-        }
-    }
-}
-
-/**
- * Checks if the relation is reflexive.
- * @param rel_arr The array of relation pairs.
- * @param universe The universe.
- * @return true if the relation is reflexive, false otherwise.
- */
-bool _relation_is_reflexive(relation_set_t *rv, set_t *universe) {
-    relation_table_t *rt = relation_table_init_relation(
-            universe, universe, rv);
-
-    for (int i = 0; i < universe->size; i++) {
-        if (rt->matrix[i][i] != 1) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-/**
- * Checks if the relation is reflexive.
- * @param n The number of relation_t.
- * @param ... The rows of relation_t and universe.
- * @return True if the relation is reflexive, false otherwise.
- */
-bool relation_is_reflexive(int n, ...) {
-    va_list args;
-    va_start(args, n);
-
-    relation_set_t *rv = va_arg(args, relation_set_t *);
-    set_t *univerzum = va_arg(args, set_t *);
-
-    bool result = _relation_is_reflexive(rv, univerzum);
-
-    va_end(args);
-
-    return result;
-}
-
-/**
- * Checks if the relation is symmetric.
- * @param rel_arr The array of relation pairs.
- * @param universe The universe.
- * @return true if the relation is symmetric, false otherwise.
- */
-bool _relation_is_symmetric(relation_set_t *rv, set_t *universe) {
-    relation_table_t *rt = relation_table_init_relation(
-            universe, universe, rv);
-
-    for (int i = 0; i < universe->size; i++) {
-        for (int j = 0; j < universe->size; j++) {
-            if (rt->matrix[i][j] == 1 && rt->matrix[j][i] == 0) {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
-/**
- * Checks if the relation is symmetric.
- * @param n The number of relation_t.
- * @param ... The rows of relation_t and universe.
- * @return True if the relation is symmetric, false otherwise.
- */
-bool relation_is_symmetric(int n, ...) {
-    va_list args;
-    va_start(args, n);
-
-    relation_set_t *rv = va_arg(args, relation_set_t *);
-    set_t *universe = va_arg(args, set_t *);
-
-    bool result = _relation_is_symmetric(rv, universe);
-
-    va_end(args);
-
-    return result;
-}
-
-/**
- * Checks if the relation is antisymmetric.
- * @param rel_arr The array of relation pairs.
- * @param universe The universe.
- * @return true if the relation is antisymmetric, false otherwise.
- */
-bool _relation_is_antisymmetric(relation_set_t *rv, set_t *universe) {
-    relation_table_t *rt = relation_table_init_relation(
-            universe, universe, rv);
-
-    for (int i = 0; i < universe->size; i++) {
-        for (int j = 0; j < universe->size; j++) {
-            if (rt->matrix[i][j] == 1 && rt->matrix[j][i] == 1 && i != j) {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
-/**
- * Checks if the relation is antisymmetric.
- * @param n The number of relation_t.
- * @param ... The rows of relation_t and universe.
- * @return True if the relation is antisymmetric, false otherwise.
- */
-bool relation_is_antisymmetric(int n, ...) {
-    va_list args;
-    va_start(args, n);
-
-    relation_set_t *rv = va_arg(args, relation_set_t *);
-    set_t *universe = va_arg(args, set_t *);
-
-    bool result = _relation_is_antisymmetric(rv, universe);
-
-    va_end(args);
-
-    return result;
-}
-
-/**
- * Checks if the relation is transitive.
- * @param rel_arr The array of relation pairs.
- * @param universe The universe.
- * @return true if the relation is transitive, false otherwise.
- */
-bool _relation_is_transitive(relation_set_t *rv, set_t *universe) {
-    relation_table_t *rt = relation_table_init_relation(
-            universe, universe, rv);
-
-    for (int i = 0; i < universe->size; i++) {
-        for (int j = 0; j < universe->size; j++) {
-            for (int k = 0; k < universe->size; k++) {
-                if (rt->matrix[i][j] == 1 && rt->matrix[j][k] == 1 &&
-                    rt->matrix[i][k] == 0) {
-                    return false;
-                }
-            }
-        }
-    }
-
-    return true;
-}
-
-/**
- * Checks if the relation is transitive.
- * @param n The number of relation_t.
- * @param ... The rows of relation_t and universe.
- * @return True if the relation is transitive, false otherwise.
- */
-bool relation_is_transitive(int n, ...) {
-    va_list args;
-    va_start(args, n);
-
-    relation_set_t *rv = va_arg(args, relation_set_t *);
-    set_t *universe = va_arg(args, set_t *);
-
-    bool result = _relation_is_transitive(rv, universe);
-
-    va_end(args);
-
-    return result;
-}
-
-/**
- * Checks if the relation is function.
- * @param rel_arr The array of relation pairs.
- * @param universe The universe.
- * @return true if the relation is function, false otherwise.
- */
-bool _relation_is_function(relation_set_t *rv, set_t *universe) {
-    relation_table_t *rt = relation_table_init_relation(
-            universe, universe, rv);
-
-    for (int i = 0; i < universe->size; i++) {
-        int total_in_row = 0;
-        for (int j = 0; j < universe->size; j++) {
-            if (rt->matrix[i][j] == 1) {
-                total_in_row++;
-            }
-            if (total_in_row == 2) {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-/**
- * Checks if the relation is a function.
- * @param n The number of relation_t.
- * @param ... The rows of relation_t and universe.
- * @return True if the relation is a function, false otherwise.
- */
-bool relation_is_function(int n, ...) {
-    va_list args;
-    va_start(args, n);
-
-    relation_set_t *rv = va_arg(args, relation_set_t *);
-    set_t *universe = va_arg(args, set_t *);
-
-    bool result = _relation_is_function(rv, universe);
-
-    va_end(args);
-
-    return result;
-}
-
-/**
- * Finds domain of the relation
- * @param rel_arr The array of relation pairs.
- * @param universe The universe.
- */
-vector_t *_relation_domain(relation_set_t *rv, set_t *universe) {
-    vector_t *domain = vector_init(universe->size);
-    for (int i = 0; i < rv->size; i++) {
-        int flag = 0;
-        for (int j = 0; j < universe->size; j++) {
-            if (strcmp(rv->relations[i]->element_a, universe->elements[j]) ==
-                0) {
-                for (int k = 0; k < domain->size; k++) {
-                    if (strcmp(rv->relations[i]->element_a,
-                               domain->elements[k]) ==
-                        0) {
-                        flag = 1;
-                        break;
-                    }
-                }
-                if (flag == 0) {
-                    vector_add(domain, rv->relations[i]->element_a);
-                }
-                break;
-            }
-        }
-    }
-    for (int i = 0; i < domain->size; i++) {
-        if (strcmp(domain->elements[i], "") != 0) {
-            printf("%s ", domain->elements[i]);
-        }
-
-    }
-    return domain;
-}
-
-/**
- * Finds domain of the relation_t.
- * @param n The number of relation_t.
- * @param ... The rows of relation_t and universe.
- */
-vector_t *relation_domain(int n, ...) {
-    va_list args;
-    va_start(args, n);
-
-    relation_set_t *rv = va_arg(args, relation_set_t *);
-    set_t *universe = va_arg(args, set_t *);
-
-    vector_t *result = _relation_domain(rv, universe);
-    va_end(args);
-
-    return result;
-}
-
-/**
- * Finds codomain of the relation
- * @param rel_arr The array of relation pairs.
- * @param universe The universe.
- */
-vector_t *_relation_codomain(relation_set_t *rv, set_t *universe) {
-    vector_t *codomain = vector_init(universe->size);
-    for (int i = 0; i < rv->size; i++) {
-        int flag = 0;
-        for (int j = 0; j < universe->size; j++) {
-            if (strcmp(rv->relations[i]->element_b, universe->elements[j]) ==
-                0) {
-                for (int k = 0; k < codomain->size; k++) {
-                    if (strcmp(rv->relations[i]->element_b,
-                               codomain->elements[k]) ==
-                        0) {
-                        flag = 1;
-                        break;
-                    }
-                }
-                if (flag == 0) {
-                    vector_add(codomain, rv->relations[i]->element_b);
-                }
-                break;
-            }
-        }
-    }
-    for (int i = 0; i < codomain->size; i++) {
-        if (strcmp(codomain->elements[i], "") != 0) {
-            printf("%s ", codomain->elements[i]);
-        }
-
-    }
-    return codomain;
-}
-
-/**
- * Finds codomain of the relation_t.
- * @param n The number of relation_t.
- * @param ... The rows of relation_t and universe.
- */
-vector_t *relation_codomain(int n, ...) {
-    va_list args;
-    va_start(args, n);
-
-    relation_set_t *rv = va_arg(args, relation_set_t *);
-    set_t *universe = va_arg(args, set_t *);
-
-    vector_t *result = _relation_codomain(rv, universe);
-    va_end(args);
-
-    return result;
-}
-
-/**
- * Checks if the relation is injective.
- * @param rel_arr The relation
- * @param s1 The first set (domain)
- * @param s2 The second set (codomain)
- * @return True if the relation is injective, false otherwise.
- */
-bool _relation_is_injective(relation_set_t *rv, set_t *s1, set_t *s2) {
-    relation_table_t *rt = relation_table_init_relation(
-            s1, s2, rv);
-
-    for (int i = 0; i < s1->size; i++) {
-        int total_in_row = 0;
-        for (int j = 0; j < s2->size; j++) {
-            if (rt->matrix[i][j] == 1) {
-                total_in_row++;
-            }
-        }
-        if (total_in_row != 1) {     //it has to be a function as well
-            printf("its not a function!\n");
-            return false;
-        }
-    }
-    for (int i = 0; i < s2->size; i++) {
-        int total_in_column = 0;
-        for (int j = 0; j < s1->size; j++) {
-            if (rt->matrix[j][i] == 1) {
-                total_in_column++;
-            }
-            if (total_in_column > 1) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-/**
- * Checks if the relation is injective.
- * @param n The number of relation_t.
- * @param ... The rows of relation_t and sets.
- * @return True if the relation is injective, false otherwise.
- */
-bool relation_is_injective(int n, ...) {
-    va_list args;
-    va_start(args, n);
-
-    relation_set_t *rv = va_arg(args, relation_set_t *);
-    set_t *s1 = va_arg(args, set_t *);
-    set_t *s2 = va_arg(args, set_t *);
-
-    bool result = _relation_is_injective(rv, s1, s2);
-
-    va_end(args);
-
-    return result;
-}
-
-/**
- * Checks if the relation is surjective.
- * @param rel_arr The relation
- * @param s1 The first set (domain)
- * @param s2 The second set (codomain)
- * @return True if the relation is surjective, false otherwise.
- */
-bool _relation_is_surjective(relation_set_t *rv, set_t *s1, set_t *s2) {
-    relation_table_t *rt = relation_table_init_relation(
-            s1, s2, rv);
-
-    for (int i = 0; i < s1->size; i++) {
-        int total_in_row = 0;
-        for (int j = 0; j < s2->size; j++) {
-            if (rt->matrix[i][j] == 1) {
-                total_in_row++;
-            }
-        }
-        if (total_in_row != 1) {     //it has to be a function as well
-            return false;
-        }
-    }
-    for (int i = 0; i < s2->size; i++) {
-        int total_in_column = 0;
-        for (int j = 0; j < s1->size; j++) {
-            if (rt->matrix[j][i] == 1) {
-                total_in_column++;
-            }
-        }
-        if (total_in_column == 0) {
-            return false;
-        }
-    }
-    return true;
-}
-
-/**
- * Checks if the relation is surjective.
- * @param n The number of relation_t.
- * @param ... The rows of relation_t and sets.
- * @return True if the relation is surjective, false otherwise.
- */
-bool relation_is_surjective(int n, ...) {
-    va_list args;
-    va_start(args, n);
-
-    relation_set_t *rv = va_arg(args, relation_set_t *);
-    set_t *s1 = va_arg(args, set_t *);
-    set_t *s2 = va_arg(args, set_t *);
-
-    bool result = _relation_is_surjective(rv, s1, s2);
-
-    va_end(args);
-
-    return result;
-}
-
-/**
- * Checks if the relation is bijective.
- * @param rel_arr The relation
- * @param s1 The first set (domain)
- * @param s2 The second set (codomain)
- * @return True if the relation is bijective, false otherwise.
- */
-bool _relation_is_bijective(relation_set_t *rv, set_t *s1, set_t *s2) {
-    if (_relation_is_injective(rv, s1, s2) == true &&
-        _relation_is_surjective(rv, s1, s2) == true) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-/**
- * Checks if the relation is bijective.
- * @param n The number of relation_t.
- * @param ... The rows of relation_t and sets.
- * @return True if the relation is bijective, false otherwise.
- */
-bool relation_is_bijective(int n, ...) {
-    va_list args;
-    va_start(args, n);
-
-    relation_set_t *rv = va_arg(args, relation_set_t *);
-    set_t *s1 = va_arg(args, set_t *);
-    set_t *s2 = va_arg(args, set_t *);
-
-    bool result = _relation_is_bijective(rv, s1, s2);
-
-    va_end(args);
-
-    return result;
 }
 
 /**
