@@ -3406,49 +3406,17 @@ bool relation_is_bijective(int n, ...) {
  * @return 0 if the program ran successfully, 1 otherwise.
  */
 int main(int argc, char *argv[]) {
-//    if (argc != 2)
-//        print_error(__FILENAME__, __LINE__, __func__,
-//                    "Invalid number of arguments");
-//
-//    command_system_t *cs = command_system_init(argv[1]);
-//
-//    command_system_exec(cs);
-//
-//    command_vector_print(cs->cv);
-//
-//    command_system_free(cs);
+    if (argc != 2)
+        print_error(__FILENAME__, __LINE__, __func__,
+                    "Invalid number of arguments");
 
-    set_t *s1 = set_init(1);
-    set_t *s2 = set_init(1);
-    set_add(s1, "a");
-    set_add(s1, "b");
-    set_add(s1, "c");
-    set_add(s1, "d");
+    command_system_t *cs = command_system_init(argv[1]);
 
-    set_add(s2, "a");
-    set_add(s2, "b");
-    set_add(s2, "c");
-    set_add(s2, "d");
+    command_system_exec(cs);
 
-    relation_set_t *rv = relation_set_init(1);
+    command_vector_print(cs->cv);
 
-    relation_set_add(rv, "a", "a");
-    relation_set_add(rv, "b", "b");
-    relation_set_add(rv, "c", "c");
-    relation_set_add(rv, "d", "d");
-    relation_set_add(rv, "a", "d");
-    relation_set_add(rv, "d", "a");
-
-//    relation_set_print(rv);
-
-    relation_table_t *rt = relation_table_init_relation(s1, s2, rv);
-    relation_table_print_with_names(rt);
-
-    //relation_codomain(2, rv, s1);
-    bool is_reflexive = relation_is_surjective(3, rv, s1, s2);
-    printf("Is reflexive: %s\n", is_reflexive ? "true" : "false");
-
-    relation_set_free(rv);
+    command_system_free(cs);
 
     return 0;
 }
