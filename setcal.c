@@ -261,7 +261,7 @@ typedef struct {
 
 vector_t *vector_init(int capacity);
 
-unsigned int find_max_vector_element_size(vector_t *v);
+unsigned int vector_find_max_element_size(vector_t *v);
 
 void resize_all(vector_t *v, unsigned int max);
 
@@ -312,7 +312,7 @@ vector_t *vector_init(int capacity) {
  * @param v The vector.
  * @return Length of the longest element.
  */
-unsigned int find_max_vector_element_size(vector_t *v) {
+unsigned int vector_find_max_element_size(vector_t *v) {
     unsigned int max = 0;
     for (int i = 0; i < v->size; i++) {
         if (strlen(v->elements[i]) > max) {
@@ -1200,13 +1200,13 @@ typedef struct {
     vector_t args;
 } command_t;
 
-command_t *init_command();
+command_t *command_init();
 
-command_t *init_command_with_type(commands type);
+command_t *command_init_with_type(commands type);
 
-void set_command_args(command_t *c, vector_t *args);
+void command_set_args(command_t *c, vector_t *args);
 
-void add_command_arg(command_t *c, char *arg);
+void command_add_arg(command_t *c, char *arg);
 
 set_t *command_to_set(command_t *c);
 
@@ -1214,11 +1214,11 @@ command_t *command_copy(command_t *c);
 
 void print_command(command_t *c);
 
-void free_command(command_t *c);
+void command_free(command_t *c);
 
-commands get_command_type_from_char(char c);
+commands command_get_type_from_char(char c);
 
-command_t *parse_command(char *s);
+command_t *command_parse(char *s);
 
 command_t bool_to_command(bool b);
 
@@ -1260,17 +1260,17 @@ void command_vector_add(command_vector_t *cv, command_t c);
 
 void command_vector_replace(command_vector_t *cv, command_t c, int index);
 
-bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov);
+bool command_vector_validate(command_vector_t *cv, operation_vector_t *ov);
 
-void attach_command_system(command_vector_t *cv, command_system_t *cs);
+void command_system_attach(command_vector_t *cv, command_system_t *cs);
 
-vector_t *get_unique_command_types(command_vector_t *cv);
+vector_t *command_types_get_unique(command_vector_t *cv);
 
-command_t *get_command_by_index(command_vector_t *cv, int index);
+command_t *command_get_by_index(command_vector_t *cv, int index);
 
-command_t *find_command_by_type(command_vector_t *cv, commands type);
+command_t *command_find_by_type(command_vector_t *cv, commands type);
 
-command_vector_t *find_command_by_type_all(command_vector_t *cv, commands type);
+command_vector_t *command_find_by_type_all(command_vector_t *cv, commands type);
 
 command_vector_t *
 command_vector_slice(command_vector_t *cv, int start, int end);
@@ -1295,7 +1295,7 @@ typedef struct command_system_t {
  * Initializes a command.
  * @return The initialized command.
  */
-command_t *init_command() {
+command_t *command_init() {
     command_t *c = (command_t *) malloc(sizeof(command_t));
 
     if (c == NULL)
@@ -1311,8 +1311,8 @@ command_t *init_command() {
  * @param type The type of the command.
  * @return The initialized command.
  */
-command_t *init_command_with_type(commands type) {
-    command_t *c = init_command();
+command_t *command_init_with_type(commands type) {
+    command_t *c = command_init();
     c->type = type;
     return c;
 }
@@ -1323,7 +1323,7 @@ command_t *init_command_with_type(commands type) {
  * @param c The command.
  * @param args The arguments.
  */
-void set_command_args(command_t *c, vector_t *args) {
+void command_set_args(command_t *c, vector_t *args) {
     if (args == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Args is NULL");
 
@@ -1338,7 +1338,7 @@ void set_command_args(command_t *c, vector_t *args) {
  * @param c The command.
  * @param arg The argument.
  */
-void add_command_arg(command_t *c, char *arg) {
+void command_add_arg(command_t *c, char *arg) {
     if (&(c->args) == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Command args is NULL");
 
@@ -1375,10 +1375,10 @@ set_t *command_to_set(command_t *c) {
  * @return The copy of the command.
  */
 command_t *command_copy(command_t *c) {
-    command_t *c_copy = init_command_with_type(c->type);
+    command_t *c_copy = command_init_with_type(c->type);
 
     for (int i = 0; i < c->args.size; i++) {
-        add_command_arg(c_copy, c->args.elements[i]);
+        command_add_arg(c_copy, c->args.elements[i]);
     }
 
     return c_copy;
@@ -1388,7 +1388,7 @@ command_t *command_copy(command_t *c) {
  * Prints the command.
  * @param c The command.
  */
-void print_command(command_t *c) {
+void command_print(command_t *c) {
     switch (c->type) {
         case U:
             printf("U");
@@ -1419,7 +1419,7 @@ void print_command(command_t *c) {
  * Frees the command.
  * @param c The command.
  */
-void free_command(command_t *c) {
+void command_free(command_t *c) {
     if (&(c->args) == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Command args is NULL");
 
@@ -1435,7 +1435,7 @@ void free_command(command_t *c) {
  * @param c capacity The capacity of the vector.
  * @return The initialized command vector.
  */
-commands get_command_type_from_char(char c) {
+commands command_get_type_from_char(char c) {
     switch (c) {
         case 'U':
             return U;
@@ -1455,8 +1455,8 @@ commands get_command_type_from_char(char c) {
  * @param s The command string.
  * @return The command.
  */
-command_t *parse_command(char *s) {
-    command_t *c = init_command();
+command_t *command_parse(char *s) {
+    command_t *c = command_init();
     vector_t *args = vector_init(10);
 
     if (s == NULL)
@@ -1500,7 +1500,7 @@ command_t *parse_command(char *s) {
  * @return The command.
  */
 command_t bool_to_command(bool b) {
-    command_t *c = init_command();
+    command_t *c = command_init();
 
     c->args = *vector_init(1);
     vector_add(&c->args, b ? "true" : "false");
@@ -1514,7 +1514,7 @@ command_t bool_to_command(bool b) {
  * @return The command.
  */
 command_t int_to_command(int i) {
-    command_t *c = init_command();
+    command_t *c = command_init();
 
     c->args = *vector_init(1);
     vector_add(&c->args, int_to_string(i));
@@ -1528,7 +1528,7 @@ command_t int_to_command(int i) {
  * @return The command.
  */
 command_t *set_to_command(set_t *s) {
-    command_t *c = init_command();
+    command_t *c = command_init();
     vector_t *args = vector_init(1);
 
     if (s == NULL)
@@ -1620,10 +1620,10 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
         print_error(__FILENAME__, __LINE__, __FUNCTION__,
                     "Invalid command vector");
 
-    command_t *u_command = find_command_by_type(cv, U);
-    command_vector_t *s_commands = find_command_by_type_all(cv, S);
-    command_vector_t *c_commands = find_command_by_type_all(cv, C);
-    vector_t *unique_command_types = get_unique_command_types(cv);
+    command_t *u_command = command_find_by_type(cv, U);
+    command_vector_t *s_commands = command_find_by_type_all(cv, S);
+    command_vector_t *c_commands = command_find_by_type_all(cv, C);
+    vector_t *unique_command_types = command_types_get_unique(cv);
 
     /**
      * Commands vector maximum size is 1000.
@@ -1874,7 +1874,7 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
  * @param cv Command vector.
  * @param cs Command system.
  */
-void attach_command_system(command_vector_t *cv, command_system_t *cs) {
+void command_system_attach(command_vector_t *cv, command_system_t *cs) {
     cv->system = cs;
 }
 
@@ -1883,7 +1883,7 @@ void attach_command_system(command_vector_t *cv, command_system_t *cs) {
  * @param cv Command vector.
  * @return Unique command types.
  */
-vector_t *get_unique_command_types(command_vector_t *cv) {
+vector_t *command_types_get_unique(command_vector_t *cv) {
     vector_t *unique_command_types = vector_init(1);
 
     for (int i = 0; i < cv->size; i++) {
@@ -1919,7 +1919,7 @@ vector_t *get_unique_command_types(command_vector_t *cv) {
  * @param index Index of the command.
  * @return Command.
  */
-command_t *get_command_by_index(command_vector_t *cv, int index) {
+command_t *command_get_by_index(command_vector_t *cv, int index) {
     if (index < 0 || index >= cv->size) {
         print_error(__FILENAME__, __LINE__, __FUNCTION__,
                     "Index out of bounds");
@@ -1934,7 +1934,7 @@ command_t *get_command_by_index(command_vector_t *cv, int index) {
  * @param type The command type.
  * @return The command or NULL if not found.
  */
-command_t *find_command_by_type(command_vector_t *cv, commands type) {
+command_t *command_find_by_type(command_vector_t *cv, commands type) {
     for (int i = 0; i < cv->size; i++) {
         if (cv->commands[i].type == type) {
             return &cv->commands[i];
@@ -1945,7 +1945,7 @@ command_t *find_command_by_type(command_vector_t *cv, commands type) {
 
 // create a function to find all commands of a certain type
 command_vector_t *
-find_command_by_type_all(command_vector_t *cv, commands type) {
+command_find_by_type_all(command_vector_t *cv, commands type) {
     command_vector_t *commands = command_vector_init(1);
 
     for (int i = 0; i < cv->size; i++) {
@@ -2028,7 +2028,7 @@ command_vector_t *parse_file(char *filename) {
     size_t len = 0;
 
     while (fgets(line, 255, fp) != NULL) {
-        command_t *c = parse_command(line);
+        command_t *c = command_parse(line);
         command_vector_add(cv, *c);
     }
 
@@ -2206,7 +2206,7 @@ bool operation_vector_contains(operation_vector_t *ov, char *name) {
     return false;
 }
 
-void print_operation_vector(operation_vector_t *ov) {
+void operation_vector_print(operation_vector_t *ov) {
     for (int i = 0; i < ov->size; i++) {
         printf("%c: %s\n", ov->operations[i]->type, ov->operations[i]->name);
     }
@@ -2251,7 +2251,7 @@ command_system_t *command_system_init(char *filename) {
 
     cs->filename = filename;
     cs->cv = parse_file(filename);
-    attach_command_system(cs->cv, cs);
+    command_system_attach(cs->cv, cs);
 
     command_system_init_base(cs);
     command_system_validate(cs);
@@ -2332,7 +2332,7 @@ void command_system_init_vectors(command_system_t *cs) {
      */
     cs->set_vector = set_vector_init(1);
 
-    command_t *universe_command = find_command_by_type(cs->cv, U);
+    command_t *universe_command = command_find_by_type(cs->cv, U);
 
     set_vector_add(cs->set_vector, command_to_set(universe_command), 1);
 
@@ -2371,21 +2371,21 @@ void command_system_exec(command_system_t *cs) {
             print_error(__FILENAME__, __LINE__, __func__,
                         "Invalid number of arguments");
 
-        command_t *first_cmd = init_command();
-        command_t *second_cmd = init_command();
+        command_t *first_cmd = command_init();
+        command_t *second_cmd = command_init();
 
         int first_index = atoi(command->args.elements[1]);
         int second_index = atoi(command->args.elements[2]);
 
         if (first_index) {
             first_cmd = command_copy(
-                    get_command_by_index(cs->cv, first_index - 1));
+                    command_get_by_index(cs->cv, first_index - 1));
             first_cmd->args.elements[0] = command->args.elements[0];
         }
 
         if (second_index) {
             second_cmd = command_copy(
-                    get_command_by_index(cs->cv, second_index - 1));
+                    command_get_by_index(cs->cv, second_index - 1));
             second_cmd->args.elements[0] = command->args.elements[0];
         }
 
@@ -2563,8 +2563,7 @@ void relation_set_add_relation(relation_set_t *rv, new_relations_t *r) {
  * @param element_a The first element.
  * @param element_b The second element.
  */
-void
-relation_set_add(relation_set_t *rv, char *element_a, char *element_b) {
+void relation_set_add(relation_set_t *rv, char *element_a, char *element_b) {
     if (rv->size == rv->capacity) {
         rv->capacity += 1;
         rv->relations = realloc(rv->relations,
@@ -2633,8 +2632,7 @@ relation_vector_t *relation_vector_init(int capacity) {
  * @param rv The relation_vector_t.
  * @param rs The relation_set_t.
  */
-void
-relation_vector_add_relation_set(relation_vector_t *rv, relation_set_t *rs) {
+void relation_vector_add_relation_set(relation_vector_t *rv, relation_set_t *rs) {
     if (rv->size == rv->capacity) {
         rv->capacity += 1;
         rv->relations = realloc(rv->relations,
@@ -2816,7 +2814,6 @@ relation_set_t *command_to_relation_set(command_t *c) {
  * Relation math
  */
 
-void rel_table(int **table, relation_t *rel_arr, set_t *univerzum);
 
 bool _relation_is_reflexive(relation_set_t *rv, set_t *universe);
 
@@ -2859,32 +2856,6 @@ bool _relation_is_bijective(relation_set_t *rv, set_t *s1, set_t *s2);
 
 bool relation_is_bijective(int n, ...);
 
-
-
-/**
- * table of 0 and 1 for relation_t
- */
-void rel_table(int **table, relation_t *rel_arr, set_t *universe) {
-    for (int i = 0; i < universe->size; i++) {
-        for (int j = 0; j < universe->size; j++) {
-            table[i][j] = 0;
-        }
-    }
-    for (int i = 0; i < rel_arr->count_pairs; i++) {
-        for (int j = 0; j < universe->size; j++) {
-            if (strcmp(rel_arr->pairs[i][0], universe->elements[j]) == 0) {
-                for (int k = 0; k < universe->size; k++) {
-                    if (strcmp(rel_arr->pairs[i][1], universe->elements[k]) ==
-                        0) {
-                        table[j][k] = 1;
-                        break;
-                    }
-                }
-                break;
-            }
-        }
-    }
-}
 
 /**
  * Checks if the relation is reflexive.
@@ -3357,18 +3328,18 @@ bool relation_is_bijective(int n, ...) {
  * @return 0 if the program ran successfully, 1 otherwise.
  */
 int main(int argc, char *argv[]) {
-//    if (argc != 2)
-//        print_error(__FILENAME__, __LINE__, __func__,
-//                    "Invalid number of arguments");
-//
-//    command_system_t *cs = command_system_init(argv[1]);
-//
-//    command_system_exec(cs);
-//
-//    command_vector_print(cs->cv);
-//
-//    command_system_free(cs);
+    if (argc != 2)
+        print_error(__FILENAME__, __LINE__, __func__,
+                    "Invalid number of arguments");
 
+    command_system_t *cs = command_system_init(argv[1]);
+
+    command_system_exec(cs);
+
+    command_vector_print(cs->cv);
+
+    command_system_free(cs);
+/*
     set_t *s1 = set_init(1);
     set_t *s2 = set_init(1);
     set_add(s1, "a");
@@ -3399,7 +3370,6 @@ int main(int argc, char *argv[]) {
     bool is_reflexive = relation_is_surjective(3, rv, s1, s2);
     printf("Is reflexive: %s\n", is_reflexive ? "true" : "false");
 
-    relation_set_free(rv);
-
+    relation_set_free(rv);*/
     return 0;
 }
