@@ -3631,6 +3631,39 @@ void command_system_exec(command_system_t *cs) {
                     cs->set_vector->sets[0]);
 
             command_vector_replace(cs->cv, *set_to_command(s), i);
+        } else if ((strcmp(operation_name, "injective") == 0) ||
+                   (strcmp(operation_name, "surjective") == 0) ||
+                   (strcmp(operation_name, "bijective") == 0)) {
+            bool result = false;
+
+            if (first_cmd->type != R || second_cmd->type != S ||
+                third_cmd->type != S)
+                print_error(__FILENAME__, __LINE__, __func__,
+                            "Invalid argument type");
+
+            if (strcmp(operation_name, "injective") == 0) {
+                result = relation_is_injective(
+                        3,
+                        relation_vector_find(cs->relation_vector,
+                                             first_index),
+                        set_vector_find(cs->set_vector, second_index),
+                        set_vector_find(cs->set_vector, third_index));
+            } else if (strcmp(operation_name, "surjective") == 0) {
+                result = relation_is_surjective(
+                        3,
+                        relation_vector_find(cs->relation_vector,
+                                             first_index),
+                        set_vector_find(cs->set_vector, second_index),
+                        set_vector_find(cs->set_vector, third_index));
+            } else {
+                result = relation_is_bijective(
+                        3,
+                        relation_vector_find(cs->relation_vector,
+                                             first_index),
+                        set_vector_find(cs->set_vector, second_index),
+                        set_vector_find(cs->set_vector, third_index));
+            }
+            command_vector_replace(cs->cv, bool_to_command(result), i);
         }
     }
 }
