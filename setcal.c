@@ -315,6 +315,10 @@ vector_t *vector_init(int capacity) {
     v->capacity = capacity;
     v->elements = (char **) malloc(capacity * sizeof(char *));
 
+    for(int i = 0; i < capacity; i++) {
+        v->elements[i] = malloc(sizeof(char) * 31);
+    }
+
     if (v->elements == NULL) {
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
     }
@@ -329,18 +333,19 @@ vector_t *vector_init(int capacity) {
  */
 void vector_add(vector_t *v, char *s) {
     if (v->size == v->capacity) {
-        v->capacity *= 2;
+        v->capacity += 1;
         v->elements = (char **) realloc(v->elements,
                                         v->capacity * sizeof(char *));
+
+        v->elements[v->size] = malloc(sizeof(char) * (strlen(s) + 1));
 
         if (v->elements == NULL) {
             print_error(__FILENAME__, __LINE__, __func__, "Realloc failed");
         }
     }
-    v->elements[v->size] = remove_char(s, ' ');
-    v->size++;
 
-//    resize_all(v, find_max_vector_element_size(v));
+    strcpy(v->elements[v->size], s);
+    v->size++;
 }
 
 /**
@@ -350,16 +355,18 @@ void vector_add(vector_t *v, char *s) {
  */
 void vector_add_no_transform(vector_t *v, char *s) {
     if (v->size == v->capacity) {
-        v->capacity *= 2;
+        v->capacity += 1;
         v->elements = (char **) realloc(v->elements,
                                         v->capacity * sizeof(char *));
+
+        v->elements[v->size] = malloc(sizeof(char) * (strlen(s) + 1));
 
         if (v->elements == NULL) {
             print_error(__FILENAME__, __LINE__, __func__, "Realloc failed");
         }
     }
 
-    v->elements[v->size] = s;
+    strcpy(v->elements[v->size], s);
     v->size++;
 }
 
@@ -467,13 +474,12 @@ void vector_free(vector_t *v) {
         }
     }
 
-    for (int i = 0; i < v->size; i++) {
+    for (int i = 0; i < v->capacity; i++) {
         free(v->elements[i]);
-        v->elements[i] = NULL;
     }
 
     free(v->elements);
-    v->elements = NULL;
+    free(v);
 }
 
 /**
