@@ -1,3 +1,13 @@
+/**
+ * IZP Projekt 2 - Kalkulačka
+ *
+ * Skupina:
+ * - xshevc01
+ * - xpetro27
+ * - xmoise01
+ * - xafana01
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <malloc.h>
