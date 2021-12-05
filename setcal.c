@@ -3560,33 +3560,47 @@ void command_system_init_base(command_system_t *cs) {
     int common_operations_argc[RELATION_OPERATIONS_COUNT] = {3, 3, 3};
 
     for (int i = 0; i < SET_OPERATIONS_COUNT; i++) {
-        operation_vector_add(cs->operation_vector,
-                             operation_init(set_operations[i], S,
-                                            set_operations_argc[i]));
+        operation *o = operation_init(set_operations[i], S,
+                                      set_operations_argc[i]);
+
+        operation_vector_add(cs->operation_vector, o);
+
+        operation_free(o);
     }
 
     for (int i = 0; i < SET_OPERATIONS_COUNT; i++) {
-        operation_vector_add(cs->operation_vector,
-                             operation_init(set_operations[i], U,
-                                            set_operations_argc[i]));
+        operation *o = operation_init(set_operations[i], U,
+                                      set_operations_argc[i]);
+        operation_vector_add(cs->operation_vector, o);
+
+        operation_free(o);
     }
 
     for (int i = 0; i < RELATION_OPERATIONS_COUNT; i++) {
-        operation_vector_add(cs->operation_vector,
-                             operation_init(relation_operations[i], R,
-                                            relation_operations_argc[i]));
+        operation *o = operation_init(relation_operations[i], R,
+                                      relation_operations_argc[i]);
+
+        operation_vector_add(cs->operation_vector, o);
+
+        operation_free(o);
     }
 
     for (int i = 0; i < COMMON_OPERATIONS_COUNT; i++) {
-        operation_vector_add(cs->operation_vector,
-                             operation_init(common_operations[i], U,
-                                            common_operations_argc[i]));
-        operation_vector_add(cs->operation_vector,
-                             operation_init(common_operations[i], S,
-                                            common_operations_argc[i]));
-        operation_vector_add(cs->operation_vector,
-                             operation_init(common_operations[i], R,
-                                            common_operations_argc[i]));
+        operation *uo = operation_init(common_operations[i], U,
+                                       relation_operations_argc[i]);
+        operation *so = operation_init(common_operations[i], S,
+                                       relation_operations_argc[i]);
+        operation *ro = operation_init(common_operations[i], R,
+                                       relation_operations_argc[i]);
+
+
+        operation_vector_add(cs->operation_vector, uo);
+        operation_vector_add(cs->operation_vector, so);
+        operation_vector_add(cs->operation_vector, ro);
+
+        operation_free(uo);
+        operation_free(so);
+        operation_free(ro);
     }
 }
 
