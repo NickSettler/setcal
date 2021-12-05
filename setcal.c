@@ -275,6 +275,8 @@ void vector_remove(vector_t *v, int index);
 
 void vector_foreach(vector_t *v, void (*f)(char *));
 
+char *vector_to_string(vector_t *v, char *delim);
+
 void vector_free(vector_t *v);
 
 vector_t *string_to_vector(char *str, const char *delim);
@@ -433,7 +435,12 @@ void vector_foreach(vector_t *v, void (*f)(char *)) {
     }
 }
 
-// create a function to convert vector args to string with delimiter
+/**
+ * Converts vector args to string with delimiter.
+ * @param v Vector.
+ * @param delim Delimiter.
+ * @return
+ */
 char *vector_to_string(vector_t *v, char *delim) {
     char *str = (char *) malloc(sizeof(char) * (v->size + 1));
 
@@ -503,8 +510,6 @@ set_t *set_init_indexed(int index, int capacity);
 int set_item_index(set_t *s, char *item);
 
 void set_add(set_t *s, char *e);
-
-void set_add_row(set_t *s, int row);
 
 void set_print(set_t *s);
 
@@ -591,14 +596,6 @@ void set_add(set_t *s, char *e) {
     s->size++;
 }
 
-///**
-// * Adds a row number to the set.
-// * @param s The set.
-// * @param e The element to add.
-// */
-//void set_add_row(set_t *s, int row) {
-//    s->row = row;
-//}
 
 /**
  * Prints the set.
@@ -1189,6 +1186,8 @@ bool operation_vector_has_name_type(operation_vector_t *ov, char *name,
 
 bool operation_vector_contains(operation_vector_t *ov, char *name);
 
+void operation_vector_print(operation_vector_t *ov);
+
 void operation_vector_free(operation_vector_t *ov);
 
 /**
@@ -1199,6 +1198,8 @@ typedef struct {
     commands type;
     vector_t args;
 } command_t;
+
+bool operation_vector_has_command(operation_vector_t *ov, command_t *c);
 
 command_t *command_init();
 
@@ -1212,7 +1213,7 @@ set_t *command_to_set(command_t *c);
 
 command_t *command_copy(command_t *c);
 
-void print_command(command_t *c);
+void command_print(command_t *c);
 
 void command_free(command_t *c);
 
@@ -1612,7 +1613,7 @@ void command_vector_replace(command_vector_t *cv, command_t c, int index) {
  * @param cv The command vector.
  * @return true if valid, false otherwise.
  */
-bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
+bool command_vector_validate(command_vector_t *cv, operation_vector_t *ov) {
     if (cv == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Command vector is NULL");
 
@@ -1943,7 +1944,12 @@ command_t *command_find_by_type(command_vector_t *cv, commands type) {
     return NULL;
 }
 
-// create a function to find all commands of a certain type
+/**
+ * Creates a function to find all commands of a certain type.
+ * @param cv The command vector.
+ * @param type The command type.
+ * @return The vector of commands of the same type.
+ */
 command_vector_t *
 command_find_by_type_all(command_vector_t *cv, commands type) {
     command_vector_t *commands = command_vector_init(1);
@@ -1957,7 +1963,13 @@ command_find_by_type_all(command_vector_t *cv, commands type) {
     return commands;
 }
 
-
+/**
+ * Slices command vector from one index till another.
+ * @param cv The command vector.
+ * @param start The start index.
+ * @param end The end index.
+ * @return
+ */
 command_vector_t *
 command_vector_slice(command_vector_t *cv, int start, int end) {
     if (start < 0 || end > cv->size || start > end) {
@@ -1995,7 +2007,7 @@ bool command_vector_contains_type(command_vector_t *cv, commands type) {
  */
 void command_vector_print(command_vector_t *cv) {
     for (int i = 0; i < cv->size; i++) {
-        print_command(&cv->commands[i]);
+        command_print(&cv->commands[i]);
     }
 }
 
@@ -2190,6 +2202,12 @@ bool operation_vector_has_name_type(operation_vector_t *ov, char *name,
     return false;
 }
 
+/**
+ * Finds the command in the operation vector.
+ * @param ov The operation vector.
+ * @param c The command.
+ * @return True if operation vector contains the command, False otherwise.
+ */
 bool operation_vector_has_command(operation_vector_t *ov, command_t *c) {
     if (c->args.elements[0] == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Invalid command");
@@ -2197,6 +2215,12 @@ bool operation_vector_has_command(operation_vector_t *ov, command_t *c) {
     return operation_vector_has_name_type(ov, c->args.elements[0], c->type);
 }
 
+/**
+ * Finds the command in the operation vector.
+ * @param ov The operation vector.
+ * @param name The name of the command.
+ * @return True if operation vector contains the command name, False otherwise.
+ */
 bool operation_vector_contains(operation_vector_t *ov, char *name) {
     for (int i = 0; i < ov->size; i++) {
         if (strcmp(ov->operations[i]->name, name) == 0)
@@ -2206,6 +2230,10 @@ bool operation_vector_contains(operation_vector_t *ov, char *name) {
     return false;
 }
 
+/**
+ * Prints the name and the type of commands.
+ * @param ov The operation vector.
+ */
 void operation_vector_print(operation_vector_t *ov) {
     for (int i = 0; i < ov->size; i++) {
         printf("%c: %s\n", ov->operations[i]->type, ov->operations[i]->name);
@@ -2321,8 +2349,12 @@ void command_system_init_base(command_system_t *cs) {
     }
 }
 
+/**
+ * Checks command system validation.
+ * @param cs The command system.
+ */
 void command_system_validate(command_system_t *cs) {
-    if (validate_command_vector(cs->cv, cs->operation_vector) == false)
+    if (command_vector_validate(cs->cv, cs->operation_vector) == false)
         print_error(__FILENAME__, __LINE__, __func__, "Invalid input");
 }
 
@@ -2458,6 +2490,10 @@ void command_system_exec(command_system_t *cs) {
     }
 }
 
+/**
+ * Frees the command system.
+ * @param cs The command system.
+ */
 void command_system_free(command_system_t *cs) {
     if (cs == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
@@ -2489,6 +2525,12 @@ void relation_print(new_relations_t *r);
 
 void relation_free(new_relations_t *r);
 
+/**
+ * Initialisation of relation.
+ * @param element_a First element in the relation.
+ * @param element_b Second element in the relation.
+ * @return
+ */
 new_relations_t *relation_init(char *element_a, char *element_b) {
     new_relations_t *new_relations = malloc(sizeof(new_relations_t));
 
@@ -2498,6 +2540,10 @@ new_relations_t *relation_init(char *element_a, char *element_b) {
     return new_relations;
 }
 
+/**
+ * Prints the elements of the relation.
+ * @param r The relation.
+ */
 void relation_print(new_relations_t *r) {
     if (r == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
@@ -2505,6 +2551,10 @@ void relation_print(new_relations_t *r) {
     printf("%s %s\n", r->element_a, r->element_b);
 }
 
+/**
+ * Frees the relation.
+ * @param r The relation
+ */
 void relation_free(new_relations_t *r) {
     if (r == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
@@ -2526,6 +2576,14 @@ typedef struct {
 
 relation_set_t *relation_set_init(int capacity);
 
+void relation_set_add_relation(relation_set_t *rv, new_relations_t *r);
+
+void relation_set_add(relation_set_t *rv, char *element_a, char *element_b);
+
+void relation_set_print(relation_set_t *rv);
+
+void relation_set_free(relation_set_t *rv);
+
 /**
  * Initializes a relation_set_t.
  * @param capacity The capacity of the relation_set_t.
@@ -2542,7 +2600,7 @@ relation_set_t *relation_set_init(int capacity) {
 }
 
 /**
- * Adds a new relation to the relation_set_t.
+ * Adds a new relation to the relation set.
  * @param rv The relation_set_t.
  * @param r The relation_t.
  */
@@ -2558,7 +2616,7 @@ void relation_set_add_relation(relation_set_t *rv, new_relations_t *r) {
 }
 
 /**
- * Checks if the relation_set_t is injective.
+ * Adds a new pair of relation to the relation set.
  * @param rv The relation_set_t.
  * @param element_a The first element.
  * @param element_b The second element.
@@ -2579,7 +2637,7 @@ void relation_set_add(relation_set_t *rv, char *element_a, char *element_b) {
 }
 
 /**
- * Prints vector of relations.
+ * Prints set of relations.
  * @param rv The relation_set_t.
  */
 void relation_set_print(relation_set_t *rv) {
@@ -2590,7 +2648,7 @@ void relation_set_print(relation_set_t *rv) {
 }
 
 /**
- * Frees the memory of the relation_set_t.
+ * Frees the memory of the relation set.
  * @param rv The relation_set_t.
  */
 void relation_set_free(relation_set_t *rv) {
@@ -2610,6 +2668,14 @@ typedef struct {
     int capacity;
     relation_set_t **relations;
 } relation_vector_t;
+
+relation_vector_t *relation_vector_init(int capacity);
+
+void relation_vector_add_relation_set(relation_vector_t *rv, relation_set_t *rs);
+
+void relation_vector_print(relation_vector_t *rv);
+
+void relation_vector_free(relation_vector_t *rv);
 
 /**
  * Initializes a relation_vector_t.
@@ -2741,6 +2807,11 @@ relation_table_t *relation_table_init_relation(set_t *row_items,
     return rt;
 }
 
+/**
+ * Adds the relation to the relation table.
+ * @param rt The relation table
+ * @param r The relation.
+ */
 void relation_table_add_relation(relation_table_t *rt, new_relations_t *r) {
     int row_index = set_item_index(rt->row_items, r->element_a);
     int column_index = set_item_index(rt->column_items, r->element_b);
@@ -2748,6 +2819,11 @@ void relation_table_add_relation(relation_table_t *rt, new_relations_t *r) {
     rt->matrix[row_index][column_index] = 1;
 }
 
+/**
+ * Removes the relation from the relation table.
+ * @param rt The relation table.
+ * @param r The relation.
+ */
 void relation_table_remove_relation(relation_table_t *rt, new_relations_t *r) {
     int row_index = set_item_index(rt->row_items, r->element_a);
     int column_index = set_item_index(rt->column_items, r->element_b);
@@ -2755,6 +2831,10 @@ void relation_table_remove_relation(relation_table_t *rt, new_relations_t *r) {
     rt->matrix[row_index][column_index] = 0;
 }
 
+/**
+ * Prints the relation table.
+ * @param rt The relation table.
+ */
 void relation_table_print(relation_table_t *rt) {
     for (int i = 0; i < rt->rows; i++) {
         for (int j = 0; j < rt->columns; j++) {
@@ -2764,7 +2844,10 @@ void relation_table_print(relation_table_t *rt) {
     }
 }
 
-// create a function to print relation table with row and column names
+/**
+ * Prints the relation table with row and column names
+ * @param rt The relation table.
+ */
 void relation_table_print_with_names(relation_table_t *rt) {
     printf("R ");
     for (int i = 0; i < rt->columns; i++) {
