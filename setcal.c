@@ -264,7 +264,7 @@ void remove_newlines(char *str) {
 
 
 char *string_duplicate(char *str){
-    char *new_str = malloc((sizeof(char) * strlen(str)));
+    char *new_str = malloc(sizeof(char) * (strlen(str) + 1));
     if (new_str == NULL){
         print_error(__FILENAME__, __LINE__, __func__, "malloc failed");
     }
