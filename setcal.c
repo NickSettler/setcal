@@ -1207,6 +1207,7 @@ void relation_free(new_relations_t *r) {
 */
 
 typedef struct {
+    unsigned int index;
     int size;
     int capacity;
     new_relations_t **relations;
@@ -1221,6 +1222,9 @@ relation_set_t *relation_set_init(int capacity);
  */
 relation_set_t *relation_set_init(int capacity) {
     relation_set_t *rv = malloc(sizeof(relation_set_t));
+
+    if (rv == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
 
     rv->size = 0;
     rv->capacity = capacity;
@@ -1294,7 +1298,6 @@ void relation_set_free(relation_set_t *rv) {
  * Relation vector definition
  */
 typedef struct {
-    unsigned int index;
     int size;
     int capacity;
     relation_set_t **relations;
@@ -1302,9 +1305,10 @@ typedef struct {
 
 relation_vector_t *relation_vector_init(int capacity);
 
-relation_vector_t *relation_vector_init_indexed(int capacity, int index);
+void relation_vector_add(relation_vector_t *rv, relation_set_t *s,
+                         unsigned int index);
 
-void relation_vector_add(set_vector_t *sv, set_t *s, unsigned int index);
+relation_set_t *relation_vector_find(relation_vector_t *rv, unsigned int index);
 
 void
 relation_vector_add_relation_set(relation_vector_t *rv, relation_set_t *rs);
@@ -1320,9 +1324,14 @@ void relation_vector_free(relation_vector_t *rv);
  * @return The initialized relation_vector_t.
  */
 relation_vector_t *relation_vector_init(int capacity) {
+    if (capacity < 0)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid capacity");
+
     relation_vector_t *rv = malloc(sizeof(relation_vector_t));
 
-    rv->index = 0;
+    if (rv == NULL)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
+
     rv->size = 0;
     rv->capacity = capacity;
     rv->relations = malloc(sizeof(relation_set_t *) * capacity);
