@@ -1339,19 +1339,31 @@ relation_vector_t *relation_vector_init(int capacity) {
     return rv;
 }
 
-relation_vector_t *relation_vector_init_indexed(int capacity, int index) {
-    relation_vector_t *rv = malloc(sizeof(relation_vector_t));
 
-    rv->index = index;
-    rv->size = 0;
-    rv->capacity = capacity;
-    rv->relations = malloc(sizeof(relation_set_t *) * capacity);
+void relation_vector_add(relation_vector_t *rv, relation_set_t *rs,
+                         unsigned int index) {
+    if (rv->size == rv->capacity) {
+        rv->capacity += 1;
+        rv->relations = realloc(rv->relations,
+                                sizeof(relation_set_t *) * rv->capacity);
+    }
 
-    return rv;
+    rv->relations[rv->size] = rs;
+    rv->relations[rv->size]->index = rv->relations[rv->size]->index ?
+                                     rv->relations[rv->size]->index : index;
+    rv->size++;
+
 }
 
-void relation_vector_add(set_vector_t *sv, set_t *s, unsigned int index) {
+relation_set_t *
+relation_vector_find(relation_vector_t *rv, unsigned int index) {
+    for (int i = 0; i < rv->size; i++) {
+        if (rv->relations[i]->index == index) {
+            return rv->relations[i];
+        }
+    }
 
+    return NULL;
 }
 
 /**
