@@ -7,7 +7,8 @@
 #include <ctype.h>
 
 #define SET_OPERATIONS_COUNT 9
-#define RELATION_OPERATIONS_COUNT 10
+#define RELATION_OPERATIONS_COUNT 7
+#define COMMON_OPERATIONS_COUNT 3
 
 /**
  * -----------------------------------------------------------------------------
@@ -3338,14 +3339,19 @@ void command_system_init_base(command_system_t *cs) {
             "transitive",
             "function",
             "domain",
-            "codomain",
+            "codomain"
+    };
+
+    int relation_operations_argc[RELATION_OPERATIONS_COUNT] = {1, 1, 1, 1, 1, 1,
+                                                               1};
+
+    char *common_operations[COMMON_OPERATIONS_COUNT] = {
             "injective",
             "surjective",
             "bijective"
     };
 
-    int relation_operations_argc[RELATION_OPERATIONS_COUNT] = {1, 1, 1, 1, 1, 1,
-                                                               1, 3, 3, 3};
+    int common_operations_argc[RELATION_OPERATIONS_COUNT] = {3, 3, 3};
 
     for (int i = 0; i < SET_OPERATIONS_COUNT; i++) {
         operation_vector_add(cs->operation_vector,
@@ -3363,6 +3369,18 @@ void command_system_init_base(command_system_t *cs) {
         operation_vector_add(cs->operation_vector,
                              operation_init(relation_operations[i], R,
                                             relation_operations_argc[i]));
+    }
+
+    for (int i = 0; i < COMMON_OPERATIONS_COUNT; i++) {
+        operation_vector_add(cs->operation_vector,
+                             operation_init(common_operations[i], U,
+                                            common_operations_argc[i]));
+        operation_vector_add(cs->operation_vector,
+                             operation_init(common_operations[i], S,
+                                            common_operations_argc[i]));
+        operation_vector_add(cs->operation_vector,
+                             operation_init(common_operations[i], R,
+                                            common_operations_argc[i]));
     }
 }
 
