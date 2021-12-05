@@ -1928,6 +1928,14 @@ set_t *relation_codomain(int n, ...) {
  * @return True if the relation is injective, false otherwise.
  */
 bool _relation_is_injective(relation_set_t *rv, set_t *s1, set_t *s2) {
+    for (int i = 0; i < rv->size; i++) {
+        if (set_item_index(s1, rv->relations[i]->element_a) == -1 ||
+            set_item_index(s2, rv->relations[i]->element_b) == -1) {
+            return false;
+        }
+    }
+
+
     relation_table_t *rt = relation_table_init_relation(
             s1, s2, rv);
 
@@ -1938,8 +1946,7 @@ bool _relation_is_injective(relation_set_t *rv, set_t *s1, set_t *s2) {
                 total_in_row++;
             }
         }
-        if (total_in_row != 1) {     //it has to be a function as well
-            printf("its not a function!\n");
+        if (total_in_row != 1) {
             return false;
         }
     }
@@ -1986,6 +1993,13 @@ bool relation_is_injective(int n, ...) {
  * @return True if the relation is surjective, false otherwise.
  */
 bool _relation_is_surjective(relation_set_t *rv, set_t *s1, set_t *s2) {
+    for (int i = 0; i < rv->size; i++) {
+        if (set_item_index(s1, rv->relations[i]->element_a) == -1 ||
+            set_item_index(s2, rv->relations[i]->element_b) == -1) {
+            return false;
+        }
+    }
+
     relation_table_t *rt = relation_table_init_relation(
             s1, s2, rv);
 
