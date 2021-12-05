@@ -386,6 +386,7 @@ void vector_add_no_transform(vector_t *v, char *s) {
             print_error(__FILENAME__, __LINE__, __func__, "Realloc failed");
         }
     }
+
     v->elements[v->size] = s;
     v->size++;
 }
@@ -424,10 +425,16 @@ void vector_remove(vector_t *v, int index) {
 vector_t *string_to_vector(char *str, const char *delim) {
     vector_t *v = vector_init(1);
     char *token = strtok(str, delim);
+
+    if (token == NULL) {
+        return v;
+    }
+
     while (token != NULL) {
         vector_add_no_transform(v, token);
         token = strtok(NULL, delim);
     }
+
     return v;
 }
 
