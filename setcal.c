@@ -7,7 +7,7 @@
 #include <ctype.h>
 
 #define SET_OPERATIONS_COUNT 9
-#define RELATION_OPERATIONS_COUNT 7
+#define RELATION_OPERATIONS_COUNT 10
 #define COMMON_OPERATIONS_COUNT 3
 
 /**
@@ -2111,7 +2111,8 @@ relation_set_t *_closure_ref(relation_set_t *rv, set_t *universe) {
     for (int i = 0; i < universe->size; i++) {
         if (rt->matrix[i][i] == 0) {
             rt->matrix[i][i] = 1;
-            new_relations_t *newrel = relation_init(universe->elements[i], universe->elements[i]);
+            new_relations_t *newrel = relation_init(universe->elements[i],
+                                                    universe->elements[i]);
             relation_set_add_relation(rv, newrel);
         }
     }
@@ -2150,7 +2151,8 @@ relation_set_t *_closure_sym(relation_set_t *rv, set_t *universe) {
         for (int j = 0; j < universe->size; j++) {
             if (rt->matrix[i][j] == 1 && rt->matrix[j][i] == 0) {
                 rt->matrix[j][i] = 1;
-                new_relations_t *newrel = relation_init(universe->elements[j], universe->elements[i]);
+                new_relations_t *newrel = relation_init(universe->elements[j],
+                                                        universe->elements[i]);
                 relation_set_add_relation(rv, newrel);
             }
         }
@@ -2192,7 +2194,8 @@ relation_set_t *_closure_trans(relation_set_t *rv, set_t *universe) {
                 if (rt->matrix[i][j] == 1 && rt->matrix[j][k] == 1 &&
                     rt->matrix[i][k] == 0) {
                     rt->matrix[i][k] = 1;
-                    new_relations_t *newrel = relation_init(universe->elements[i], universe->elements[k]);
+                    new_relations_t *newrel = relation_init(
+                            universe->elements[i], universe->elements[k]);
                     relation_set_add_relation(rv, newrel);
                 }
             }
@@ -2699,6 +2702,24 @@ relation_set_t *command_to_relation_set(command_t *c) {
     return rv;
 }
 
+command_t *relation_set_to_command(relation_set_t *r) {
+    command_t *c = init_command();
+    vector_t *args = vector_init(1);
+
+    c->type = R;
+
+    for (int i = 0; i < r->size; i++) {
+        char *vector_str = strdup(r->relations[i]->element_a);
+        strcat(vector_str, " ");
+        strcat(vector_str, r->relations[i]->element_b);
+
+        vector_add_no_transform(args, vector_str);
+    }
+
+    c->args = *args;
+
+    return c;
+}
 
 /**
  * -----------------------------------------------------------------------------
@@ -3488,11 +3509,14 @@ void command_system_init_base(command_system_t *cs) {
             "transitive",
             "function",
             "domain",
-            "codomain"
+            "codomain",
+            "closure_ref",
+            "closure_sym",
+            "closure_trans",
     };
 
     int relation_operations_argc[RELATION_OPERATIONS_COUNT] = {1, 1, 1, 1, 1, 1,
-                                                               1};
+                                                               1, 1, 1, 1};
 
     char *common_operations[COMMON_OPERATIONS_COUNT] = {
             "injective",
@@ -3799,6 +3823,30 @@ void command_system_exec(command_system_t *cs) {
                         set_vector_find(cs->set_vector, third_index));
             }
             command_vector_replace(cs->cv, bool_to_command(result), i);
+        } else if (strcmp(operation_name, "closure_ref") == 0) {
+            relation_set_t *rs = closure_ref(2,
+                                             relation_vector_find(
+                                                     cs->relation_vector,
+                                                     first_index),
+                                             cs->set_vector->sets[0]);
+
+            command_vector_replace(cs->cv, *relation_set_to_command(rs), i);
+        } else if (strcmp(operation_name, "closure_sym") == 0) {
+            relation_set_t *rs = closure_sym(2,
+                                             relation_vector_find(
+                                                     cs->relation_vector,
+                                                     first_index),
+                                             cs->set_vector->sets[0]);
+
+            command_vector_replace(cs->cv, *relation_set_to_command(rs), i);
+        } else if (strcmp(operation_name, "closure_trans") == 0) {
+            relation_set_t *rs = closure_trans(2,
+                                               relation_vector_find(
+                                                       cs->relation_vector,
+                                                       first_index),
+                                               cs->set_vector->sets[0]);
+
+            command_vector_replace(cs->cv, *relation_set_to_command(rs), i);
         }
     }
 }
