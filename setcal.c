@@ -227,12 +227,9 @@ char *replace_substring(char *str, char *substr, char *new_substr) {
  * @return The string without spaces.
  */
 char *remove_char(char *str, char r) {
-    char *new_str = (char *) malloc(sizeof(char) * (strlen(str) + 1));
-
-    if (new_str == NULL) {
-        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
-        exit(EXIT_FAILURE);
-    }
+    size_t len = strlen(str) + 1;
+    char new_str[len];
+    char* return_value = (char *) malloc(sizeof(char) * len);
 
     int j = 0;
     for (unsigned int i = 0; i < strlen(str); i++) {
@@ -242,7 +239,8 @@ char *remove_char(char *str, char r) {
         }
     }
     new_str[j] = '\0';
-    return new_str;
+    strcpy(return_value, new_str);
+    return return_value;
 }
 
 /**
@@ -264,8 +262,9 @@ void remove_spaces(char *str) {
  * @param str The string.
  */
 void remove_newlines(char *str) {
-    char *new_str = remove_char(str, '\n');
-    new_str = remove_char(new_str, '\r');
+    char *new_str = (char*)malloc(sizeof(char) * 31);
+    strcpy(new_str, remove_char(str, '\n'));
+    strcpy(new_str, remove_char(new_str, '\r'));
     strcpy(str, new_str);
 
     if (strcmp(str, new_str) != 0)
@@ -360,14 +359,14 @@ void vector_add(vector_t *v, char *s) {
         v->elements = (char **) realloc(v->elements,
                                         v->capacity * sizeof(char *));
 
-        v->elements[v->size] = malloc(sizeof(char) * (strlen(s) + 1));
-
         if (v->elements == NULL) {
             print_error(__FILENAME__, __LINE__, __func__, "Realloc failed");
         }
+
+        v->elements[v->size] = malloc(sizeof(char) * 31);
     }
 
-    strcpy(v->elements[v->size], s);
+    strcpy(v->elements[v->size], remove_char(s, ' '));
     v->size++;
 }
 
@@ -497,7 +496,7 @@ void vector_free(vector_t *v) {
         }
     }
 
-    for (int i = 0; i < v->capacity; i++) {
+    for (int i = 0; i < v->size; i++) {
         free(v->elements[i]);
     }
 
