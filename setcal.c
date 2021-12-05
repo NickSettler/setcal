@@ -88,7 +88,7 @@ int n_count(int n) {
  * @return The string representation of the number.
  */
 void int_to_string(char *str, int number) {
-    sprintf(str, "%d\0", number);
+    sprintf(str, "%d", number);
 }
 
 /**
