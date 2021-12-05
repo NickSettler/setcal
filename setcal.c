@@ -2628,6 +2628,7 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
     command_t *u_command = find_command_by_type(cv, U);
     command_vector_t *s_commands = find_command_by_type_all(cv, S);
     command_vector_t *c_commands = find_command_by_type_all(cv, C);
+    command_vector_t *r_commands = find_command_by_type_all(cv, R);
     vector_t *unique_command_types = get_unique_command_types(cv);
 
     /**
@@ -2867,6 +2868,44 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
             if (j == ov->size - 1) {
                 print_error(__FILENAME__, __LINE__, __FUNCTION__,
                             "Operation does not exist");
+            }
+        }
+    }
+
+    /**
+     * Check if all elements in R commands are from universe
+     */
+    for (int i = 0; i < r_commands->size; i++) {
+        command_t r_command = r_commands->commands[i];
+        relation_set_t *rs = command_to_relation_set(&r_command);
+
+        for (int j = 0; j < rs->size; j++) {
+            if ((vector_contains(&(u_command->args),
+                                 rs->relations[j]->element_a) &&
+                 vector_contains(&(u_command->args),
+                                 rs->relations[j]->element_b)) == false) {
+                print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                            "Relation set contains elements not from universe");
+            }
+        }
+    }
+
+    /**
+     * Check if there are not repeats in R commands
+     */
+    for (int i = 0; i < r_commands->size; i++) {
+        command_t r_command = r_commands->commands[i];
+        relation_set_t *rs = command_to_relation_set(&r_command);
+
+        for (int j = 0; j < rs->size; j++) {
+            for (int k = j + 1; k < rs->size; k++) {
+                if (strcmp(rs->relations[j]->element_a,
+                           rs->relations[k]->element_a) == 0 &&
+                    strcmp(rs->relations[j]->element_b,
+                           rs->relations[k]->element_b) == 0) {
+                    print_error(__FILENAME__, __LINE__, __FUNCTION__,
+                                "Relation set contains repeating elements");
+                }
             }
         }
     }
