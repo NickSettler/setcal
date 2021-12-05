@@ -3869,6 +3869,21 @@ void command_system_free(command_system_t *cs) {
  * @param argv The arguments.
  * @return 0 if the program ran successfully, 1 otherwise.
  */
+
+relation_set_t *closure_ref(relation_set_t *rv, set_t *universe){
+    relation_table_t *rt = relation_table_init_relation(
+            universe, universe, rv);
+
+    for (int i = 0; i < universe->size; i++) {
+        if (rt->matrix[i][i] == 0) {
+            rt->matrix[i][i] = 1;
+            new_relations_t *newrel = relation_init(universe->elements[i], universe->elements[i]);
+            relation_set_add_relation(rv, newrel);
+        }
+    }
+    return rv;
+}
+
 int main(int argc, char *argv[]) {
     if (argc != 2)
         print_error(__FILENAME__, __LINE__, __func__,
@@ -3881,6 +3896,37 @@ int main(int argc, char *argv[]) {
     command_vector_print(cs->cv);
 
     command_system_free(cs);
+
+    /*set_t *s1 = set_init(1);
+    set_t *s2 = set_init(1);
+
+    set_add(s1, "a");
+    set_add(s1, "b");
+    set_add(s1, "c");
+    set_add(s1, "d");
+
+    set_add(s2, "a");
+    set_add(s2, "b");
+    set_add(s2, "c");
+    set_add(s2, "d");
+
+    relation_set_t *rv = relation_set_init(1);
+    //relation_set_add(rv, "a", "a");
+    //relation_set_add(rv, "b", "b");
+    //relation_set_add(rv, "c", "c");
+    //relation_set_add(rv, "d", "d");
+    //relation_set_add(rv, "a", "d");
+    relation_set_add(rv, "d", "a");
+
+    relation_set_print(rv);
+    relation_table_t *rt = relation_table_init_relation(s1, s2, rv);
+    relation_table_print_with_names(rt);
+    //relation_codomain(2, rv, s1);
+    //bool is_reflexive = relation_is_surjective(3, rv, s1, s2);
+    //printf("Is reflexive: %s\n", is_reflexive ? "true" : "false");
+    rv = closure_ref(rv, s1);
+    relation_set_print(rv);
+    relation_set_free(rv);*/
 
     return 0;
 }
