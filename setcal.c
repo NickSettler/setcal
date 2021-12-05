@@ -63,7 +63,7 @@ char *replace_char(char *str, char s, char r);
 
 int find_substr(const char *str, const char *substr);
 
-char *replace_substring(char *str, char *s, char *r);
+//char *replace_substring(char *str, char *s, char *r);
 
 char *remove_char(char *str, char r);
 
@@ -71,7 +71,7 @@ void remove_spaces(char *str);
 
 void remove_newlines(char *str);
 
-char *string_duplicate(char *str);
+//char *string_duplicate(char *str);
 
 int n_count(int n) {
     int count = 0;
@@ -172,30 +172,19 @@ int find_substr(const char *str, const char *substr) {
 }
 
 
-char *replace_substring(char *str, char *substr, char *new_substr) {
+void replace_substring(char *dst, char *str, const char *substr,
+                       const char *new_substr) {
     int i, j, k, l;
     int substr_len = (int) strlen(substr);
-
-    if (substr_len == 0) {
-        return str;
-    }
-
     int new_substr_len = (int) strlen(new_substr);
-
-    if (new_substr_len == 0) {
-        return str;
-    }
-
     int str_len = (int) strlen(str);
-
-    if (str_len == 0) {
-        return str;
-    }
 
     int substr_pos = find_substr(str, substr);
 
-    if (substr_pos == -1)
-        return str;
+    if (substr_pos == -1) {
+        strcpy(dst, str);
+        return;
+    }
 
     char *new_str = malloc(str_len + 1);
 
@@ -214,10 +203,12 @@ char *replace_substring(char *str, char *substr, char *new_substr) {
     new_str[k] = '\0';
 
     if (find_substr(new_str, substr) != -1) {
-        new_str = replace_substring(new_str, substr, new_substr);
+        replace_substring(new_str, new_str, substr, new_substr);
     }
 
-    return new_str;
+    strcpy(dst, new_str);
+
+    free(new_str);
 }
 
 
@@ -274,16 +265,8 @@ void remove_newlines(char *str) {
 }
 
 
-char *string_duplicate(char *str) {
-    char *new_str = malloc(sizeof(char) * (strlen(str) + 1));
-    if (new_str == NULL) {
-        print_error(__FILENAME__, __LINE__, __func__, "malloc failed");
-    }
-    strcpy(new_str, str);
-    if (strcmp(str, new_str) != 0) {
-        print_error(__FILENAME__, __LINE__, __func__, "strcpy failed");
-    }
-    return new_str;
+void string_duplicate(char *dst, char *str) {
+    strcpy(dst, str);
 }
 /**
  * -----------------------------------------------------------------------------
@@ -402,8 +385,7 @@ void vector_copy(vector_t *dst, vector_t *src) {
     dst->elements = (char **) malloc(src->capacity * sizeof(char *));
 
     for (int i = 0; i < src->capacity; i++) {
-        dst->elements[i] = malloc(
-                sizeof(char) * (strlen(src->elements[i]) + 1));
+        dst->elements[i] = malloc(sizeof(char) * 31);
     }
 
     for (int i = 0; i < src->size; i++) {
@@ -2417,7 +2399,9 @@ command_t *init_command() {
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
 
     c->type = 0;
-    c->args = *vector_init(1);
+    vector_t *v = vector_init(1);
+    vector_copy(&c->args, v);
+    vector_free(v);
     return c;
 }
 
@@ -2573,7 +2557,8 @@ commands get_command_type_from_char(char c) {
 }
 
 command_t *parse_relation_command(char *str) {
-    char *rel_string = replace_substring(str, ") (", ")/(");
+    char *rel_string = malloc(sizeof(char) * strlen(str));
+    replace_substring(rel_string, str, ") (", ")/(");
 
     remove_newlines(rel_string);
 
@@ -2588,14 +2573,14 @@ command_t *parse_relation_command(char *str) {
         print_error(__FILENAME__, __LINE__, __func__, "Invalid command");
 
     for (int i = 1; i < v->size; i++) {
-        char *rel_str = string_duplicate(v->elements[i]);
+        char *rel_str = malloc(sizeof(char) * (strlen(v->elements[i]) + 1));
+        string_duplicate(rel_str, v->elements[i]);
         vector_add_no_transform(args, rel_str);
+        free(rel_str);
     }
 
     vector_foreach(args, remove_newlines);
     vector_copy(&c->args, args);
-
-//    c->args = *args;
 
     vector_free(args);
 
@@ -2621,13 +2606,16 @@ command_t *parse_command(char *s) {
     if (s == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "String is NULL");
 
-    char *copy = string_duplicate(s);
+    char *copy = malloc(sizeof(char) * (strlen(s) + 1));
+    string_duplicate(copy, s);
     char *token = strtok(copy, " ");
 
     while (token != NULL) {
         vector_add(args, token);
         token = strtok(NULL, " ");
     }
+    free(copy);
+    free(token);
 
     if (args->size == 0)
         print_error(__FILENAME__, __LINE__, __FUNCTION__, "Invalid command");
@@ -2710,7 +2698,9 @@ relation_set_t *command_to_relation_set(command_t *c) {
     relation_set_t *rv = relation_set_init(0);
 
     for (int i = 0; i < c->args.size; i++) {
-        char *rel_str = string_duplicate(c->args.elements[i]);
+        char *rel_str = malloc(
+                sizeof(char) * (strlen(c->args.elements[i]) + 1));
+        string_duplicate(rel_str, c->args.elements[i]);
         char *token = strtok(rel_str, " ");
 
         vector_t *v2 = vector_init(2);
@@ -2723,6 +2713,9 @@ relation_set_t *command_to_relation_set(command_t *c) {
         new_relations_t *new_rel = relation_init(v2->elements[0],
                                                  v2->elements[1]);
         relation_set_add_relation(rv, new_rel);
+
+        free(rel_str);
+        free(token);
     }
 
     return rv;
@@ -2735,11 +2728,15 @@ command_t *relation_set_to_command(relation_set_t *r) {
     c->type = R;
 
     for (int i = 0; i < r->size; i++) {
-        char *vector_str = string_duplicate(r->relations[i]->element_a);
+        char *vector_str = malloc(
+                sizeof(char) * (strlen(r->relations[i]->element_a) + 1));
+        string_duplicate(vector_str, r->relations[i]->element_a);
         strcat(vector_str, " ");
         strcat(vector_str, r->relations[i]->element_b);
 
         vector_add_no_transform(args, vector_str);
+
+        free(vector_str);
     }
 
     c->args = *args;
@@ -3587,11 +3584,11 @@ void command_system_init_base(command_system_t *cs) {
 
     for (int i = 0; i < COMMON_OPERATIONS_COUNT; i++) {
         operation *uo = operation_init(common_operations[i], U,
-                                       relation_operations_argc[i]);
+                                       common_operations_argc[i]);
         operation *so = operation_init(common_operations[i], S,
-                                       relation_operations_argc[i]);
+                                       common_operations_argc[i]);
         operation *ro = operation_init(common_operations[i], R,
-                                       relation_operations_argc[i]);
+                                       common_operations_argc[i]);
 
 
         operation_vector_add(cs->operation_vector, uo);
