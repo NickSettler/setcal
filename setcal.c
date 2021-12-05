@@ -61,6 +61,7 @@ void remove_spaces(char *str);
 
 void remove_newlines(char *str);
 
+char *string_duplicate(char *str);
 
 int n_count(int n) {
     int count = 0;
@@ -263,6 +264,18 @@ void remove_newlines(char *str) {
     free(new_str);
 }
 
+
+char *string_duplicate(char *str){
+    char *new_str = malloc(sizeof(char) * (strlen(str) + 1));
+    if (new_str == NULL){
+        print_error(__FILENAME__, __LINE__, __func__, "malloc failed");
+    }
+    strcpy(new_str, str);
+    if (strcmp(str, new_str) != 0){
+        print_error(__FILENAME__, __LINE__, __func__, "strcpy failed");
+    }
+    return new_str;
+}
 /**
  * -----------------------------------------------------------------------------
  * VECTOR MODULE
@@ -2360,7 +2373,7 @@ typedef struct command_system_t {
     set_t *universe;
     set_vector_t *set_vector;
     relation_vector_t *relation_vector;
-};
+} command_system_t;
 
 /**
  * Initializes a command.
@@ -2544,7 +2557,7 @@ command_t *parse_relation_command(char *str) {
         print_error(__FILENAME__, __LINE__, __func__, "Invalid command");
 
     for (int i = 1; i < v->size; i++) {
-        char *rel_str = strdup(v->elements[i]);
+        char *rel_str = string_duplicate(v->elements[i]);
         vector_add_no_transform(args, rel_str);
     }
 
@@ -2574,7 +2587,7 @@ command_t *parse_command(char *s) {
     if (s == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "String is NULL");
 
-    char *copy = strdup(s);
+    char *copy = string_duplicate(s);
     char *token = strtok(copy, " ");
 
     while (token != NULL) {
@@ -2663,7 +2676,7 @@ relation_set_t *command_to_relation_set(command_t *c) {
     relation_set_t *rv = relation_set_init(0);
 
     for (int i = 0; i < c->args.size; i++) {
-        char *rel_str = strdup(c->args.elements[i]);
+        char *rel_str = string_duplicate(c->args.elements[i]);
         char *token = strtok(rel_str, " ");
 
         vector_t *v2 = vector_init(2);
@@ -2688,7 +2701,7 @@ command_t *relation_set_to_command(relation_set_t *r) {
     c->type = R;
 
     for (int i = 0; i < r->size; i++) {
-        char *vector_str = strdup(r->relations[i]->element_a);
+        char *vector_str = string_duplicate(r->relations[i]->element_a);
         strcat(vector_str, " ");
         strcat(vector_str, r->relations[i]->element_b);
 
@@ -3219,7 +3232,6 @@ command_vector_t *parse_file(char *filename) {
         print_error(__FILENAME__, __LINE__, __func__, "File not found");
 
     char line[300];
-    size_t len = 0;
 
     while (fgets(line, 255, fp) != NULL) {
         command_t *c = parse_command(line);
