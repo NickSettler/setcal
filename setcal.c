@@ -1601,6 +1601,9 @@ void rel_table(int **table, relation_t *rel_arr, set_t *universe) {
  * @return true if the relation is reflexive, false otherwise.
  */
 bool _relation_is_reflexive(relation_set_t *rv, set_t *universe) {
+    if (universe->size == 0 && rv->size == 0){
+        return true;
+    }
     relation_table_t *rt = relation_table_init_relation(
             universe, universe, rv);
 
@@ -1640,6 +1643,9 @@ bool relation_is_reflexive(int n, ...) {
  * @return true if the relation is symmetric, false otherwise.
  */
 bool _relation_is_symmetric(relation_set_t *rv, set_t *universe) {
+    if (universe->size == 0 && rv->size == 0){
+        return true;
+    }
     relation_table_t *rt = relation_table_init_relation(
             universe, universe, rv);
 
@@ -1681,6 +1687,9 @@ bool relation_is_symmetric(int n, ...) {
  * @return true if the relation is antisymmetric, false otherwise.
  */
 bool _relation_is_antisymmetric(relation_set_t *rv, set_t *universe) {
+    if (universe->size == 0 && rv->size == 0){
+        return true;
+    }
     relation_table_t *rt = relation_table_init_relation(
             universe, universe, rv);
 
@@ -1722,6 +1731,9 @@ bool relation_is_antisymmetric(int n, ...) {
  * @return true if the relation is transitive, false otherwise.
  */
 bool _relation_is_transitive(relation_set_t *rv, set_t *universe) {
+    if (universe->size == 0 && rv->size == 0){
+        return true;
+    }
     relation_table_t *rt = relation_table_init_relation(
             universe, universe, rv);
 
@@ -1766,6 +1778,9 @@ bool relation_is_transitive(int n, ...) {
  * @return true if the relation is function, false otherwise.
  */
 bool _relation_is_function(relation_set_t *rv, set_t *universe) {
+    if (universe->size == 0 && rv->size == 0){
+        return true;
+    }
     relation_table_t *rt = relation_table_init_relation(
             universe, universe, rv);
 
