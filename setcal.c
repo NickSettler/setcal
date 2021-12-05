@@ -3455,11 +3455,19 @@ void command_system_exec(command_system_t *cs) {
             print_error(__FILENAME__, __LINE__, __func__,
                         "Invalid number of arguments");
 
+        bool has_third_command = command->args.elements[3] != NULL;
+
         command_t *first_cmd = init_command();
         command_t *second_cmd = init_command();
+        command_t *third_cmd = init_command();
 
         int first_index = atoi(command->args.elements[1]);
         int second_index = atoi(command->args.elements[2]);
+        int third_index = 0;
+
+        if (has_third_command) {
+            third_index = atoi(command->args.elements[3]);
+        }
 
         if (first_index) {
             first_cmd = command_copy(
@@ -3489,10 +3497,26 @@ void command_system_exec(command_system_t *cs) {
             second_cmd->args.elements[0] = command->args.elements[0];
         }
 
+        if (third_index) {
+            third_cmd = command_copy(
+                    get_command_by_index(cs->cv, third_index - 1));
+
+            if (operation_vector_has_name_type(
+                    cs->operation_vector,
+                    operation_name,
+                    third_cmd->type) == false)
+                print_error(__FILENAME__, __LINE__, __func__,
+                            "Invalid argument type");
+
+            third_cmd->args.elements[0] = command->args.elements[0];
+        }
+
         if ((operation_vector_has_command(
                 cs->operation_vector, first_cmd) ||
              operation_vector_has_command(
-                     cs->operation_vector, second_cmd)) == false) {
+                     cs->operation_vector, second_cmd) ||
+             (has_third_command && operation_vector_has_command(
+                     cs->operation_vector, third_cmd))) == false) {
             print_error(__FILENAME__, __LINE__, __func__,
                         "Invalid command");
         }
@@ -3560,21 +3584,24 @@ void command_system_exec(command_system_t *cs) {
                     relation_vector_find(cs->relation_vector, first_index),
                     cs->set_vector->sets[0]);
 
-            command_vector_replace(cs->cv, bool_to_command(is_reflexive), i);
+            command_vector_replace(cs->cv, bool_to_command(is_reflexive),
+                                   i);
         } else if (strcmp(operation_name, "symmetric") == 0) {
             bool is_symmetric = relation_is_symmetric(
                     2,
                     relation_vector_find(cs->relation_vector, first_index),
                     cs->set_vector->sets[0]);
 
-            command_vector_replace(cs->cv, bool_to_command(is_symmetric), i);
+            command_vector_replace(cs->cv, bool_to_command(is_symmetric),
+                                   i);
         } else if (strcmp(operation_name, "antisymmetric") == 0) {
             bool is_antisymmetric = relation_is_antisymmetric(
                     2,
                     relation_vector_find(cs->relation_vector, first_index),
                     cs->set_vector->sets[0]);
 
-            command_vector_replace(cs->cv, bool_to_command(is_antisymmetric),
+            command_vector_replace(cs->cv,
+                                   bool_to_command(is_antisymmetric),
                                    i);
         } else if (strcmp(operation_name, "transitive") == 0) {
             bool is_transitive = relation_is_transitive(
@@ -3582,7 +3609,8 @@ void command_system_exec(command_system_t *cs) {
                     relation_vector_find(cs->relation_vector, first_index),
                     cs->set_vector->sets[0]);
 
-            command_vector_replace(cs->cv, bool_to_command(is_transitive), i);
+            command_vector_replace(cs->cv, bool_to_command(is_transitive),
+                                   i);
         } else if (strcmp(operation_name, "function") == 0) {
             bool is_function = relation_is_function(
                     2,
