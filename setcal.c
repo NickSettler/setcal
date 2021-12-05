@@ -147,12 +147,9 @@ char *replace_char(char *str, char s, char r) {
  * @return The string without spaces.
  */
 char *remove_char(char *str, char r) {
-    char *new_str = (char *) malloc(sizeof(char) * (strlen(str) + 1));
-
-    if (new_str == NULL) {
-        print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
-        exit(EXIT_FAILURE);
-    }
+    size_t len = strlen(str) + 1;
+    char new_str[len];
+    char* return_value = (char *) malloc(sizeof(char) * len);
 
     int j = 0;
     for (unsigned int i = 0; i < strlen(str); i++) {
@@ -162,7 +159,8 @@ char *remove_char(char *str, char r) {
         }
     }
     new_str[j] = '\0';
-    return new_str;
+    strcpy(return_value, new_str);
+    return return_value;
 }
 
 /**
@@ -184,8 +182,9 @@ void remove_spaces(char *str) {
  * @param str The string.
  */
 void remove_newlines(char *str) {
-    char *new_str = remove_char(str, '\n');
-    new_str = remove_char(new_str, '\r');
+    char *new_str = (char*)malloc(sizeof(char) * 31);
+    strcpy(new_str, remove_char(str, '\n'));
+    strcpy(new_str, remove_char(new_str, '\r'));
     strcpy(str, new_str);
 
     if (strcmp(str, new_str) != 0)
@@ -246,6 +245,9 @@ vector_t *vector_init(int capacity) {
     v->capacity = capacity;
     v->elements = (char **) malloc(capacity * sizeof(char *));
 
+    for (int i = v->size ; i < v->capacity; i++) {
+        v->elements[i] = malloc(sizeof(char) * 31);
+    }
     if (v->elements == NULL) {
         print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
     }
@@ -286,15 +288,18 @@ void resize_all(vector_t *v, unsigned int max) {
  */
 void vector_add(vector_t *v, char *s) {
     if (v->size == v->capacity) {
-        v->capacity *= 2;
+        v->capacity += 1;
         v->elements = (char **) realloc(v->elements,
                                         v->capacity * sizeof(char *));
-
         if (v->elements == NULL) {
             print_error(__FILENAME__, __LINE__, __func__, "Realloc failed");
         }
+        v->elements[v->size] = malloc(sizeof(char) * 31);
+        if (v->elements[v->size] == NULL) {
+            print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
+        }
     }
-    v->elements[v->size] = remove_char(s, ' ');
+    strcpy(v->elements[v->size], remove_char(s, ' '));
     v->size++;
 
 //    resize_all(v, find_max_vector_element_size(v));
@@ -603,8 +608,8 @@ set_vector_t *set_vector_init(int capacity) {
  * @param index The index of the set.
  */
 void set_vector_add(set_vector_t *sv, set_t *s, unsigned int index) {
-    if (sv->size == sv->capacity) {
-        sv->capacity *= 2;
+    if (sv->size + 1 == sv->capacity) {
+        sv->capacity += 1;
         sv->sets = realloc(sv->sets, sizeof(set_t *) * sv->capacity);
 
         if (sv->sets == NULL)
@@ -1358,7 +1363,6 @@ command_t *parse_command(char *s) {
         vector_add(args, token);
         token = strtok(NULL, " ");
     }
-
     if (args->size == 0)
         print_error(__FILENAME__, __LINE__, __FUNCTION__, "Invalid command");
 
@@ -3184,42 +3188,42 @@ bool relation_is_bijective(int n, set_t *s1, set_t *s2, ...) {
  * @return 0 if the program ran successfully, 1 otherwise.
  */
 int main(int argc, char *argv[]) {
-//    if (argc != 2)
-//        print_error(__FILENAME__, __LINE__, __func__,
-//                    "Invalid number of arguments");
+    if (argc != 2)
+        print_error(__FILENAME__, __LINE__, __func__,
+                    "Invalid number of arguments");
+
+    command_system_t *cs = command_system_init(argv[1]);
+
+    command_system_exec(cs);
+
+    command_vector_print(cs->cv);
+
+    command_system_free(cs);
+
+//    set_t *s1 = set_init(1);
+//    set_add(s1, "a");
+//    set_add(s1, "b");
+//    set_add(s1, "c");
+//    set_add(s1, "d");
 //
-//    command_system_t *cs = command_system_init(argv[1]);
+//    relation_vector_t *rv = relation_vector_init(1);
 //
-//    command_system_exec(cs);
+//    relation_vector_add(rv, "a", "a");
+//    relation_vector_add(rv, "b", "b");
+//    relation_vector_add(rv, "c", "c");
+//    relation_vector_add(rv, "d", "d");
+//    relation_vector_add(rv, "a", "d");
+//    relation_vector_add(rv, "d", "a");
 //
-//    command_vector_print(cs->cv);
+////    relation_vector_print(rv);
 //
-//    command_system_free(cs);
-
-    set_t *s1 = set_init(1);
-    set_add(s1, "a");
-    set_add(s1, "b");
-    set_add(s1, "c");
-    set_add(s1, "d");
-
-    relation_vector_t *rv = relation_vector_init(1);
-
-    relation_vector_add(rv, "a", "a");
-    relation_vector_add(rv, "b", "b");
-    relation_vector_add(rv, "c", "c");
-    relation_vector_add(rv, "d", "d");
-    relation_vector_add(rv, "a", "d");
-    relation_vector_add(rv, "d", "a");
-
-//    relation_vector_print(rv);
-
-    relation_table_t *rt = relation_table_init_relation(s1, s1, rv);
-    relation_table_print_with_names(rt);
-
-    bool is_reflexive = relation_is_symmetric(2, rv, s1);
-    printf("Is reflexive: %s\n", is_reflexive ? "true" : "false");
-
-    relation_vector_free(rv);
+//    relation_table_t *rt = relation_table_init_relation(s1, s1, rv);
+//    relation_table_print_with_names(rt);
+//
+//    bool is_reflexive = relation_is_symmetric(2, rv, s1);
+//    printf("Is reflexive: %s\n", is_reflexive ? "true" : "false");
+//
+//    relation_vector_free(rv);
 
     return 0;
 }
