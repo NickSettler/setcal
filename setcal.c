@@ -1226,6 +1226,7 @@ relation_set_t *relation_set_init(int capacity) {
     if (rv == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
 
+    rv->index = 0;
     rv->size = 0;
     rv->capacity = capacity;
     rv->relations = malloc(sizeof(new_relations_t *) * capacity);
@@ -3360,6 +3361,7 @@ void command_system_init_vectors(command_system_t *cs) {
         } else if (cs->cv->commands[i].type == R) {
             command_t *command = &cs->cv->commands[i];
             relation_set_t *relation_set = command_to_relation_set(command);
+            relation_set->index = i + 1;
 
             relation_vector_add(cs->relation_vector, relation_set, i);
         }
