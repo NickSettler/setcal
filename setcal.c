@@ -229,7 +229,7 @@ char *replace_substring(char *str, char *substr, char *new_substr) {
 char *remove_char(char *str, char r) {
     size_t len = strlen(str) + 1;
     char new_str[len];
-    char* return_value = (char *) malloc(sizeof(char) * len);
+    char *return_value = (char *) malloc(sizeof(char) * len);
 
     int j = 0;
     for (unsigned int i = 0; i < strlen(str); i++) {
@@ -262,7 +262,7 @@ void remove_spaces(char *str) {
  * @param str The string.
  */
 void remove_newlines(char *str) {
-    char *new_str = (char*)malloc(sizeof(char) * 31);
+    char *new_str = (char *) malloc(sizeof(char) * 31);
     strcpy(new_str, remove_char(str, '\n'));
     strcpy(new_str, remove_char(new_str, '\r'));
     strcpy(str, new_str);
@@ -392,6 +392,25 @@ void vector_add_no_transform(vector_t *v, char *s) {
     v->size++;
 }
 
+void vector_copy(vector_t *dst, vector_t *src) {
+    if (dst == NULL) {
+        dst = vector_init(src->capacity);
+    }
+
+    dst->size = src->size;
+    dst->capacity = src->capacity;
+    dst->elements = (char **) malloc(src->capacity * sizeof(char *));
+
+    for (int i = 0; i < src->capacity; i++) {
+        dst->elements[i] = malloc(
+                sizeof(char) * (strlen(src->elements[i]) + 1));
+    }
+
+    for (int i = 0; i < src->size; i++) {
+        strcpy(dst->elements[i], src->elements[i]);
+    }
+}
+
 bool vector_contains(vector_t *v, char *s) {
     for (int i = 0; i < v->size; i++) {
         if (strcmp(v->elements[i], s) == 0) {
@@ -435,6 +454,8 @@ vector_t *string_to_vector(char *str, const char *delim) {
         vector_add_no_transform(v, token);
         token = strtok(NULL, delim);
     }
+
+//    free(token);
 
     return v;
 }
@@ -717,7 +738,7 @@ set_vector_t *set_vector_init(int capacity) {
  */
 void set_vector_add(set_vector_t *sv, set_t *s, unsigned int index) {
     if (sv->size == sv->capacity) {
-        sv->capacity *= 2;
+        sv->capacity += 1;
         sv->sets = realloc(sv->sets, sizeof(set_t *) * sv->capacity);
 
         if (sv->sets == NULL)
@@ -1290,8 +1311,9 @@ void relation_set_print(relation_set_t *rv) {
  */
 void relation_set_free(relation_set_t *rv) {
     for (int i = 0; i < rv->size; i++) {
-        free(rv->relations[i]);
+        relation_free(rv->relations[i]);
     }
+
     free(rv->relations);
     free(rv);
 }
@@ -2571,8 +2593,11 @@ command_t *parse_relation_command(char *str) {
     }
 
     vector_foreach(args, remove_newlines);
+    vector_copy(&c->args, args);
 
-    c->args = *args;
+//    c->args = *args;
+
+    vector_free(args);
 
     return c;
 }
@@ -2718,6 +2743,8 @@ command_t *relation_set_to_command(relation_set_t *r) {
     }
 
     c->args = *args;
+
+//    vector_free(args);
 
     return c;
 }
@@ -3334,7 +3361,9 @@ void operation_vector_add(operation_vector_t *ov, operation *o) {
             print_error(__FILENAME__, __LINE__, __func__, "Malloc failed");
     }
 
-    ov->operations[ov->size] = o;
+    operation *new_o = operation_init(o->name, o->type, o->argc);
+
+    ov->operations[ov->size] = new_o;
     ov->size++;
 }
 
@@ -3436,6 +3465,10 @@ void print_operation_vector(operation_vector_t *ov) {
 void operation_vector_free(operation_vector_t *ov) {
     if (ov->operations == NULL)
         print_error(__FILENAME__, __LINE__, __func__, "Invalid pointer");
+
+    for (int i = 0; i < ov->size; i++) {
+        operation_free(ov->operations[i]);
+    }
 
     free(ov->operations);
     free(ov);
@@ -3858,6 +3891,7 @@ void command_system_free(command_system_t *cs) {
     command_vector_free(cs->cv);
     operation_vector_free(cs->operation_vector);
     set_vector_free(cs->set_vector);
+    relation_vector_free(cs->relation_vector);
 
     free(cs);
 }
