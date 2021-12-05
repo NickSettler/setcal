@@ -2938,7 +2938,6 @@ bool _relation_is_bijective(relation_set_t *rv, set_t *s1, set_t *s2);
 bool relation_is_bijective(int n, ...);
 
 
-
 /**
  * table of 0 and 1 for relation_t
  */
@@ -3097,8 +3096,9 @@ bool _relation_is_transitive(relation_set_t *rv, set_t *universe) {
 
     for (int i = 0; i < universe->size; i++) {
         for (int j = 0; j < universe->size; j++) {
-            for(int k = 0; k < universe->size; k++) {
-                if (rt->matrix[i][j] == 1 && rt->matrix[j][k] == 1 && rt->matrix[i][k] == 0) {
+            for (int k = 0; k < universe->size; k++) {
+                if (rt->matrix[i][j] == 1 && rt->matrix[j][k] == 1 &&
+                    rt->matrix[i][k] == 0) {
                     return false;
                 }
             }
@@ -3144,7 +3144,7 @@ bool _relation_is_function(relation_set_t *rv, set_t *universe) {
             if (rt->matrix[i][j] == 1) {
                 total_in_row++;
             }
-            if (total_in_row == 2){
+            if (total_in_row == 2) {
                 return false;
             }
         }
@@ -3182,9 +3182,11 @@ vector_t *_relation_domain(relation_set_t *rv, set_t *universe) {
     for (int i = 0; i < rv->size; i++) {
         int flag = 0;
         for (int j = 0; j < universe->size; j++) {
-            if (strcmp(rv->relations[i]->element_a, universe->elements[j]) == 0) {
+            if (strcmp(rv->relations[i]->element_a, universe->elements[j]) ==
+                0) {
                 for (int k = 0; k < domain->size; k++) {
-                    if (strcmp(rv->relations[i]->element_a, domain->elements[k]) ==
+                    if (strcmp(rv->relations[i]->element_a,
+                               domain->elements[k]) ==
                         0) {
                         flag = 1;
                         break;
@@ -3234,9 +3236,11 @@ vector_t *_relation_codomain(relation_set_t *rv, set_t *universe) {
     for (int i = 0; i < rv->size; i++) {
         int flag = 0;
         for (int j = 0; j < universe->size; j++) {
-            if (strcmp(rv->relations[i]->element_b, universe->elements[j]) == 0) {
+            if (strcmp(rv->relations[i]->element_b, universe->elements[j]) ==
+                0) {
                 for (int k = 0; k < codomain->size; k++) {
-                    if (strcmp(rv->relations[i]->element_b, codomain->elements[k]) ==
+                    if (strcmp(rv->relations[i]->element_b,
+                               codomain->elements[k]) ==
                         0) {
                         flag = 1;
                         break;
