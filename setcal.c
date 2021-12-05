@@ -1565,6 +1565,8 @@ command_t int_to_command(int i);
 
 command_t *set_to_command(set_t *s);
 
+relation_set_t *command_to_relation_set(command_t *c);
+
 /**
  * Command system definition
  */
@@ -1789,12 +1791,41 @@ commands get_command_type_from_char(char c) {
     }
 }
 
+command_t *parse_relation_command(char *str) {
+    char *rel_string = replace_substring(str, ") (", ")/(");
+
+    vector_t *v = string_to_vector(rel_string, ")/(");
+
+    command_t *c = init_command();
+    vector_t *args = vector_init(1);
+
+    c->type = get_command_type_from_char(v->elements[0][0]);
+
+    if (c->type == 0)
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid command");
+
+    for (int i = 1; i < v->size; i++) {
+        char *rel_str = strdup(v->elements[i]);
+        vector_add_no_transform(args, rel_str);
+    }
+
+    vector_foreach(args, remove_newlines);
+
+    c->args = *args;
+
+    return c;
+}
+
 /**
  * Parses a command.
  * @param s The command string.
  * @return The command.
  */
 command_t *parse_command(char *s) {
+    if (s[0] == 'R') {
+        return parse_relation_command(s);
+    }
+
     command_t *c = init_command();
     vector_t *args = vector_init(10);
 
@@ -1883,6 +1914,29 @@ command_t *set_to_command(set_t *s) {
 
     return c;
 }
+
+relation_set_t *command_to_relation_set(command_t *c) {
+    relation_set_t *rv = malloc(sizeof(relation_set_t));
+
+    for (int i = 0; i < c->args.size; i++) {
+        char *rel_str = strdup(c->args.elements[i]);
+        char *token = strtok(rel_str, " ");
+
+        vector_t *v2 = vector_init(2);
+
+        while (token != NULL) {
+            vector_add_no_transform(v2, token);
+            token = strtok(NULL, " ");
+        }
+
+        new_relations_t *new_rel = relation_init(v2->elements[0],
+                                                 v2->elements[1]);
+        relation_set_add_relation(rv, new_rel);
+    }
+
+    return rv;
+}
+
 
 /**
  * -----------------------------------------------------------------------------
