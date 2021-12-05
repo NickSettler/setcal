@@ -2658,7 +2658,7 @@ command_t *bool_to_command(bool b) {
 command_t *int_to_command(int i) {
     command_t *c = init_command();
 
-    c->args = *vector_init(1);
+    c->args = vector_init(1);
     char *str = malloc(sizeof(char *) * n_count(i));
     int_to_string(str, i);
     vector_add(c->args, str);
