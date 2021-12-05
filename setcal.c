@@ -1,7 +1,7 @@
 /**
- * IZP Projekt 2 - Kalkulačka
+ * IZP Project 2 - setcal
  *
- * Skupina:
+ * Participants logins:
  * - xshevc01
  * - xpetro27
  * - xmoise01
