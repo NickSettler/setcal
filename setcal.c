@@ -501,9 +501,11 @@ void vector_free(vector_t *v) {
 
     for (int i = 0; i < v->size; i++) {
         free(v->elements[i]);
+        v->elements[i] = NULL;
     }
 
     free(v->elements);
+    v->elements = NULL;
     free(v);
 }
 
@@ -2980,11 +2982,14 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
     /**
      * Universe command can contain only strings.
      */
-    if (is_string_only_characters(
-            vector_to_string(&(u_command->args), " ")) == false) {
+    char *universe_string = vector_to_string(&(u_command->args), " ");
+
+    if (is_string_only_characters(universe_string) == false) {
         print_error(__FILENAME__, __LINE__, __FUNCTION__,
                     "Invalid command vector");
     }
+
+    free(universe_string);
 
     /**
      * Check if universe does not contain false and true
@@ -3084,6 +3089,8 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
                             "Relation set contains elements not from universe");
             }
         }
+
+        relation_set_free(rs);
     }
 
     /**
@@ -3104,6 +3111,8 @@ bool validate_command_vector(command_vector_t *cv, operation_vector_t *ov) {
                 }
             }
         }
+
+        relation_set_free(rs);
     }
 
     return true;
