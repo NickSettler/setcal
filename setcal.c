@@ -2221,6 +2221,7 @@ typedef struct command_system_t {
     operation_vector_t *operation_vector;
     set_t *universe;
     set_vector_t *set_vector;
+    relation_vector_t *relation_vector;
 };
 
 /**
@@ -3315,6 +3316,7 @@ void command_system_init_vectors(command_system_t *cs) {
      * Initialize the universe set.
      */
     cs->set_vector = set_vector_init(1);
+    cs->relation_vector = relation_vector_init(1);
 
     command_t *universe_command = find_command_by_type(cs->cv, U);
 
@@ -3330,6 +3332,11 @@ void command_system_init_vectors(command_system_t *cs) {
             }
 
             set_vector_add(cs->set_vector, set, i);
+        } else if (cs->cv->commands[i].type == R) {
+            command_t *command = &cs->cv->commands[i];
+            relation_set_t *relation_set = command_to_relation_set(command);
+
+            relation_vector_add(cs->relation_vector, relation_set, i);
         }
     }
 }
