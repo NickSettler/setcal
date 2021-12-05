@@ -1571,6 +1571,18 @@ bool _relation_is_bijective(relation_set_t *rv, set_t *s1, set_t *s2);
 
 bool relation_is_bijective(int n, ...);
 
+relation_set_t *_closure_ref(relation_set_t *rv, set_t *universe);
+
+relation_set_t *closure_ref(int n, ...);
+
+relation_set_t *_closure_sym(relation_set_t *rv, set_t *universe);
+
+relation_set_t *closure_sym(int n, ...);
+
+relation_set_t *_closure_trans(relation_set_t *rv, set_t *universe);
+
+relation_set_t *closure_trans(int n, ...);
+
 
 /**
  * table of 0 and 1 for relation_t
@@ -2085,6 +2097,129 @@ bool relation_is_bijective(int n, ...) {
 
     return result;
 }
+
+/**
+ * Finds the reflexive closure of the relation.
+ * @param rv The relation set.
+ * @param universe The universe.
+ * @return The reflexive closure of the relation.
+ */
+relation_set_t *_closure_ref(relation_set_t *rv, set_t *universe) {
+    relation_table_t *rt = relation_table_init_relation(
+            universe, universe, rv);
+
+    for (int i = 0; i < universe->size; i++) {
+        if (rt->matrix[i][i] == 0) {
+            rt->matrix[i][i] = 1;
+            new_relations_t *newrel = relation_init(universe->elements[i], universe->elements[i]);
+            relation_set_add_relation(rv, newrel);
+        }
+    }
+    return rv;
+}
+
+/**
+ * Finds the reflexive closure of the relation.
+ * @param n The number of arguments.
+ * @param ... The set of relation and the universe.
+ * @return the reflexive closure of the relation.
+ */
+relation_set_t *closure_ref(int n, ...) {
+    va_list args;
+    va_start(args, n);
+
+    relation_set_t *rv = va_arg(args, relation_set_t *);
+    set_t *universe = va_arg(args, set_t*);
+
+    relation_set_t *result = _closure_ref(rv, universe);
+    va_end(args);
+
+    return result;
+}
+
+/**
+ * Finds the symmetric closure of the relation.
+ * @param rv The relation set.
+ * @param universe The universe.
+ * @return The symmetric closure of the relation.
+ */
+relation_set_t *_closure_sym(relation_set_t *rv, set_t *universe) {
+    relation_table_t *rt = relation_table_init_relation(universe, universe, rv);
+
+    for (int i = 0; i < universe->size; i++) {
+        for (int j = 0; j < universe->size; j++) {
+            if (rt->matrix[i][j] == 1 && rt->matrix[j][i] == 0) {
+                rt->matrix[j][i] = 1;
+                new_relations_t *newrel = relation_init(universe->elements[j], universe->elements[i]);
+                relation_set_add_relation(rv, newrel);
+            }
+        }
+    }
+    return rv;
+}
+
+/**
+ * Finds the symmetric closure of the relation.
+ * @param n The number of arguments.
+ * @param ... The set of relation and the universe.
+ * @return the symmetric closure of the relation.
+ */
+relation_set_t *closure_sym(int n, ...) {
+    va_list args;
+    va_start(args, n);
+
+    relation_set_t *rv = va_arg(args, relation_set_t *);
+    set_t *universe = va_arg(args, set_t*);
+
+    relation_set_t *result = _closure_sym(rv, universe);
+    va_end(args);
+
+    return result;
+}
+
+/**
+ * Finds the transitive closure of the relation.
+ * @param rv The relation set.
+ * @param universe The universe.
+ * @return The transitive closure of the relation.
+ */
+relation_set_t *_closure_trans(relation_set_t *rv, set_t *universe) {
+    relation_table_t *rt = relation_table_init_relation(universe, universe, rv);
+
+    for (int i = 0; i < universe->size; i++) {
+        for (int j = 0; j < universe->size; j++) {
+            for (int k = 0; k < universe->size; k++) {
+                if (rt->matrix[i][j] == 1 && rt->matrix[j][k] == 1 &&
+                    rt->matrix[i][k] == 0) {
+                    rt->matrix[i][k] = 1;
+                    new_relations_t *newrel = relation_init(universe->elements[i], universe->elements[k]);
+                    relation_set_add_relation(rv, newrel);
+                }
+            }
+        }
+    }
+    return rv;
+}
+
+/**
+ * Finds the transitive closure of the relation.
+ * @param n The number of arguments.
+ * @param ... The set of relation and the universe.
+ * @return the transitive closure of the relation.
+ */
+relation_set_t *closure_trans(int n, ...) {
+    va_list args;
+    va_start(args, n);
+
+    relation_set_t *rv = va_arg(args, relation_set_t *);
+    set_t *universe = va_arg(args, set_t*);
+
+    relation_set_t *result = _closure_trans(rv, universe);
+    va_end(args);
+
+    return result;
+}
+
 
 /**
  * -----------------------------------------------------------------------------
@@ -3678,6 +3813,7 @@ void command_system_free(command_system_t *cs) {
 
     free(cs);
 }
+
 
 /**
  * Main function.

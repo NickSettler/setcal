@@ -2,7 +2,7 @@
 
 [![CodeFactor](https://www.codefactor.io/repository/github/signalr/signalr/badge?style=plastic)](https://www.codefactor.io/repository/github/rediso4ka/relace)
 
-C program for calculations of algebraic sets and relations. 
+C program for calculations of algebraic sets and relation_t. 
 No external libraries where used, so the program can be compiled almost in any environment.
 Uses [CMake](https://cmake.org/cmake/help/v3.16/guide/tutorial/index.html) to build executable.
 
