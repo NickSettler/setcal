@@ -605,7 +605,7 @@ int set_item_index(set_t *s, char *item) {
  */
 void set_add(set_t *s, char *e) {
     if (s->size == s->capacity) {
-        s->capacity *= 2;
+        s->capacity += 1;
         s->elements = realloc(s->elements, sizeof(char *) * s->capacity);
 
         if (s->elements == NULL)
@@ -1550,13 +1550,13 @@ bool _relation_is_function(relation_set_t *rv, set_t *universe);
 
 bool relation_is_function(int n, ...);
 
-vector_t *_relation_domain(relation_set_t *rv, set_t *universe);
+set_t *_relation_domain(relation_set_t *rv, set_t *universe);
 
-vector_t *relation_domain(int n, ...);
+set_t *relation_domain(int n, ...);
 
-vector_t *_relation_codomain(relation_set_t *rv, set_t *universe);
+set_t *_relation_codomain(relation_set_t *rv, set_t *universe);
 
-vector_t *relation_codomain(int n, ...);
+set_t *relation_codomain(int n, ...);
 
 bool _relation_is_injective(relation_set_t *rv, set_t *s1, set_t *s2);
 
@@ -1603,7 +1603,7 @@ void rel_table(int **table, relation_t *rel_arr, set_t *universe) {
  * @return true if the relation is reflexive, false otherwise.
  */
 bool _relation_is_reflexive(relation_set_t *rv, set_t *universe) {
-    if (universe->size == 0 && rv->size == 0){
+    if (universe->size == 0 && rv->size == 0) {
         return true;
     }
     relation_table_t *rt = relation_table_init_relation(
@@ -1645,7 +1645,7 @@ bool relation_is_reflexive(int n, ...) {
  * @return true if the relation is symmetric, false otherwise.
  */
 bool _relation_is_symmetric(relation_set_t *rv, set_t *universe) {
-    if (universe->size == 0 && rv->size == 0){
+    if (universe->size == 0 && rv->size == 0) {
         return true;
     }
     relation_table_t *rt = relation_table_init_relation(
@@ -1689,7 +1689,7 @@ bool relation_is_symmetric(int n, ...) {
  * @return true if the relation is antisymmetric, false otherwise.
  */
 bool _relation_is_antisymmetric(relation_set_t *rv, set_t *universe) {
-    if (universe->size == 0 && rv->size == 0){
+    if (universe->size == 0 && rv->size == 0) {
         return true;
     }
     relation_table_t *rt = relation_table_init_relation(
@@ -1733,7 +1733,7 @@ bool relation_is_antisymmetric(int n, ...) {
  * @return true if the relation is transitive, false otherwise.
  */
 bool _relation_is_transitive(relation_set_t *rv, set_t *universe) {
-    if (universe->size == 0 && rv->size == 0){
+    if (universe->size == 0 && rv->size == 0) {
         return true;
     }
     relation_table_t *rt = relation_table_init_relation(
@@ -1780,7 +1780,7 @@ bool relation_is_transitive(int n, ...) {
  * @return true if the relation is function, false otherwise.
  */
 bool _relation_is_function(relation_set_t *rv, set_t *universe) {
-    if (universe->size == 0 && rv->size == 0){
+    if (universe->size == 0 && rv->size == 0) {
         return true;
     }
     relation_table_t *rt = relation_table_init_relation(
@@ -1825,8 +1825,9 @@ bool relation_is_function(int n, ...) {
  * @param rel_arr The array of relation pairs.
  * @param universe The universe.
  */
-vector_t *_relation_domain(relation_set_t *rv, set_t *universe) {
-    vector_t *domain = vector_init(universe->size);
+set_t *_relation_domain(relation_set_t *rv, set_t *universe) {
+    set_t *domain = set_init(0);
+
     for (int i = 0; i < rv->size; i++) {
         int flag = 0;
         for (int j = 0; j < universe->size; j++) {
@@ -1834,25 +1835,19 @@ vector_t *_relation_domain(relation_set_t *rv, set_t *universe) {
                 0) {
                 for (int k = 0; k < domain->size; k++) {
                     if (strcmp(rv->relations[i]->element_a,
-                               domain->elements[k]) ==
-                        0) {
+                               domain->elements[k]) == 0) {
                         flag = 1;
                         break;
                     }
                 }
                 if (flag == 0) {
-                    vector_add(domain, rv->relations[i]->element_a);
+                    set_add(domain, rv->relations[i]->element_a);
                 }
                 break;
             }
         }
     }
-    for (int i = 0; i < domain->size; i++) {
-        if (strcmp(domain->elements[i], "") != 0) {
-            printf("%s ", domain->elements[i]);
-        }
 
-    }
     return domain;
 }
 
@@ -1861,14 +1856,14 @@ vector_t *_relation_domain(relation_set_t *rv, set_t *universe) {
  * @param n The number of relation_t.
  * @param ... The rows of relation_t and universe.
  */
-vector_t *relation_domain(int n, ...) {
+set_t *relation_domain(int n, ...) {
     va_list args;
     va_start(args, n);
 
     relation_set_t *rv = va_arg(args, relation_set_t *);
     set_t *universe = va_arg(args, set_t *);
 
-    vector_t *result = _relation_domain(rv, universe);
+    set_t *result = _relation_domain(rv, universe);
     va_end(args);
 
     return result;
@@ -1879,8 +1874,9 @@ vector_t *relation_domain(int n, ...) {
  * @param rel_arr The array of relation pairs.
  * @param universe The universe.
  */
-vector_t *_relation_codomain(relation_set_t *rv, set_t *universe) {
-    vector_t *codomain = vector_init(universe->size);
+set_t *_relation_codomain(relation_set_t *rv, set_t *universe) {
+    set_t *codomain = set_init(0);
+
     for (int i = 0; i < rv->size; i++) {
         int flag = 0;
         for (int j = 0; j < universe->size; j++) {
@@ -1895,18 +1891,13 @@ vector_t *_relation_codomain(relation_set_t *rv, set_t *universe) {
                     }
                 }
                 if (flag == 0) {
-                    vector_add(codomain, rv->relations[i]->element_b);
+                    set_add(codomain, rv->relations[i]->element_b);
                 }
                 break;
             }
         }
     }
-    for (int i = 0; i < codomain->size; i++) {
-        if (strcmp(codomain->elements[i], "") != 0) {
-            printf("%s ", codomain->elements[i]);
-        }
 
-    }
     return codomain;
 }
 
@@ -1915,14 +1906,14 @@ vector_t *_relation_codomain(relation_set_t *rv, set_t *universe) {
  * @param n The number of relation_t.
  * @param ... The rows of relation_t and universe.
  */
-vector_t *relation_codomain(int n, ...) {
+set_t *relation_codomain(int n, ...) {
     va_list args;
     va_start(args, n);
 
     relation_set_t *rv = va_arg(args, relation_set_t *);
     set_t *universe = va_arg(args, set_t *);
 
-    vector_t *result = _relation_codomain(rv, universe);
+    set_t *result = _relation_codomain(rv, universe);
     va_end(args);
 
     return result;
@@ -2440,6 +2431,9 @@ command_t *parse_relation_command(char *str) {
  * @return The command.
  */
 command_t *parse_command(char *s) {
+    if (s[1] != ' ' && s[1] != '\0' && s[1] != '\n' && s[1] != '\r')
+        print_error(__FILENAME__, __LINE__, __func__, "Invalid command");
+
     if (s[0] == 'R') {
         return parse_relation_command(s);
     }
@@ -3316,12 +3310,13 @@ void command_system_init_base(command_system_t *cs) {
 
     for (int i = 0; i < SET_OPERATIONS_COUNT; i++) {
         operation_vector_add(cs->operation_vector,
-                             operation_init(set_operations[i], U,
+                             operation_init(set_operations[i], S,
                                             set_operations_argc[i]));
     }
+
     for (int i = 0; i < SET_OPERATIONS_COUNT; i++) {
         operation_vector_add(cs->operation_vector,
-                             operation_init(set_operations[i], S,
+                             operation_init(set_operations[i], U,
                                             set_operations_argc[i]));
     }
 
@@ -3398,12 +3393,28 @@ void command_system_exec(command_system_t *cs) {
         if (first_index) {
             first_cmd = command_copy(
                     get_command_by_index(cs->cv, first_index - 1));
+
+            if (operation_vector_has_name_type(
+                    cs->operation_vector,
+                    operation_name,
+                    first_cmd->type) == false)
+                print_error(__FILENAME__, __LINE__, __func__,
+                            "Invalid argument type");
+
             first_cmd->args.elements[0] = command->args.elements[0];
         }
 
         if (second_index) {
             second_cmd = command_copy(
                     get_command_by_index(cs->cv, second_index - 1));
+
+            if (operation_vector_has_name_type(
+                    cs->operation_vector,
+                    operation_name,
+                    second_cmd->type) == false)
+                print_error(__FILENAME__, __LINE__, __func__,
+                            "Invalid argument type");
+
             second_cmd->args.elements[0] = command->args.elements[0];
         }
 
@@ -3509,19 +3520,18 @@ void command_system_exec(command_system_t *cs) {
 
             command_vector_replace(cs->cv, bool_to_command(is_function), i);
         } else if (strcmp(operation_name, "domain") == 0) {
-//            bool is_reflexive = relation_is_reflexive(
-//                    2,
-//                    relation_vector_find(cs->relation_vector, first_index),
-//                    cs->set_vector->sets[0]);
-//
-//            command_vector_replace(cs->cv, bool_to_command(is_reflexive), i);
+            set_t *s = relation_domain(
+                    2,
+                    relation_vector_find(cs->relation_vector, first_index),
+                    cs->set_vector->sets[0]);
+            command_vector_replace(cs->cv, *set_to_command(s), i);
         } else if (strcmp(operation_name, "codomain") == 0) {
-//            bool is_reflexive = relation_is_reflexive(
-//                    2,
-//                    relation_vector_find(cs->relation_vector, first_index),
-//                    cs->set_vector->sets[0]);
-//
-//            command_vector_replace(cs->cv, bool_to_command(is_reflexive), i);
+            set_t *s = relation_codomain(
+                    2,
+                    relation_vector_find(cs->relation_vector, first_index),
+                    cs->set_vector->sets[0]);
+
+            command_vector_replace(cs->cv, *set_to_command(s), i);
         }
     }
 }
